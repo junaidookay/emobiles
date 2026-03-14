@@ -28,6 +28,7 @@ import NotFound from "./pages/NotFound";
 
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import { AdminCategories, AdminBrands, AdminCustomers, AdminBlog, AdminCoupons, AdminSettings } from "./pages/admin/AdminPages";
