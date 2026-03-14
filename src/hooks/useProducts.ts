@@ -50,35 +50,39 @@ export const useProducts = (filters?: {
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (filters?.search) {
-        query = query.ilike('name', `%${filters.search}%`);
-      }
-      if (filters?.featured) {
-        query = query.eq('is_featured', true);
-      }
-      if (filters?.bestSeller) {
-        query = query.eq('is_best_seller', true);
-      }
-      if (filters?.isNew) {
-        query = query.eq('is_new', true);
-      }
-      if (filters?.limit) {
-        query = query.limit(filters.limit);
-      }
+      if (filters?.search) query = query.ilike('name', `%${filters.search}%`);
+      if (filters?.featured) query = query.eq('is_featured', true);
+      if (filters?.bestSeller) query = query.eq('is_best_seller', true);
+      if (filters?.isNew) query = query.eq('is_new', true);
+      if (filters?.limit) query = query.limit(filters.limit);
 
       const { data, error } = await query;
       if (error) throw error;
 
-      // Filter by category/brand slug in JS since we need to join
       let results = (data as unknown as ProductWithImages[]) || [];
-      if (filters?.categorySlug) {
-        results = results.filter(p => p.categories?.slug === filters.categorySlug);
-      }
-      if (filters?.brandSlug) {
-        results = results.filter(p => p.brands?.slug === filters.brandSlug);
-      }
+      if (filters?.categorySlug) results = results.filter(p => p.categories?.slug === filters.categorySlug);
+      if (filters?.brandSlug) results = results.filter(p => p.brands?.slug === filters.brandSlug);
 
       return results;
+    },
+  });
+};
+
+export const useAllProducts = () => {
+  return useQuery({
+    queryKey: ['all-products'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          product_images(id, url, sort_order),
+          brands(id, name, slug, logo),
+          categories(id, name, slug, icon, image)
+        `)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data as unknown as ProductWithImages[]) || [];
     },
   });
 };
@@ -108,10 +112,7 @@ export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
+      const { data, error } = await supabase.from('categories').select('*').order('name');
       if (error) throw error;
       return data;
     },
@@ -122,10 +123,7 @@ export const useBrands = () => {
   return useQuery({
     queryKey: ['brands'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('brands')
-        .select('*')
-        .order('name');
+      const { data, error } = await supabase.from('brands').select('*').order('name');
       if (error) throw error;
       return data;
     },
@@ -163,6 +161,20 @@ export const useBlogPosts = () => {
   });
 };
 
+export const useAllBlogPosts = () => {
+  return useQuery({
+    queryKey: ['all_blog_posts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
 export const useShippingMethods = () => {
   return useQuery({
     queryKey: ['shipping_methods'],
@@ -186,6 +198,47 @@ export const useOrders = () => {
         .from('orders')
         .select('*, order_items(*)')
         .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
+export const useCoupons = () => {
+  return useQuery({
+    queryKey: ['coupons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
+export const useAddresses = () => {
+  return useQuery({
+    queryKey: ['addresses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .order('is_default', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+};
+
+export const useUserRoles = () => {
+  return useQuery({
+    queryKey: ['user_roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('*');
       if (error) throw error;
       return data;
     },
