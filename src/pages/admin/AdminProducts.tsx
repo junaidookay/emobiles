@@ -1,24 +1,121 @@
-import { Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Pencil, Trash2, Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useProducts } from '@/hooks/useProducts';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useAllProducts, useCategories, useBrands } from '@/hooks/useProducts';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useState } from 'react';
+
+const emptyProduct = {
+  name: '', slug: '', description: '', short_description: '', price: '', discount_price: '',
+  stock: '0', sku: '', category_id: '', brand_id: '', is_featured: false, is_new: false, is_best_seller: false,
+};
 
 const AdminProducts = () => {
-  const { data: products, isLoading } = useProducts();
+  const { data: products, isLoading } = useAllProducts();
+  const { data: categories } = useCategories();
+  const { data: brands } = useBrands();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [showDialog, setShowDialog] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyProduct);
+  const [saving, setSaving] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<{ id: string; url: string }[]>([]);
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from('products').delete().eq('id', id);
-    if (error) toast.error('Failed to delete product');
-    else { toast.success('Product deleted'); queryClient.invalidateQueries({ queryKey: ['products'] }); }
+    if (error) toast.error('Failed to delete');
+    else { toast.success('Product deleted'); queryClient.invalidateQueries({ queryKey: ['all-products'] }); }
+  };
+
+  const openAdd = () => {
+    setEditId(null); setForm(emptyProduct); setImageFiles([]); setExistingImages([]); setShowDialog(true);
+  };
+
+  const openEdit = (p: any) => {
+    setEditId(p.id);
+    setForm({
+      name: p.name, slug: p.slug, description: p.description || '', short_description: p.short_description || '',
+      price: String(p.price), discount_price: p.discount_price ? String(p.discount_price) : '',
+      stock: String(p.stock), sku: p.sku || '', category_id: p.category_id || '', brand_id: p.brand_id || '',
+      is_featured: p.is_featured, is_new: p.is_new, is_best_seller: p.is_best_seller,
+    });
+    setExistingImages(p.product_images?.map((i: any) => ({ id: i.id, url: i.url })) || []);
+    setImageFiles([]);
+    setShowDialog(true);
+  };
+
+  const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const productData: any = {
+        name: form.name,
+        slug: form.slug || generateSlug(form.name),
+        description: form.description,
+        short_description: form.short_description,
+        price: parseFloat(form.price),
+        discount_price: form.discount_price ? parseFloat(form.discount_price) : null,
+        stock: parseInt(form.stock),
+        sku: form.sku || null,
+        category_id: form.category_id || null,
+        brand_id: form.brand_id || null,
+        is_featured: form.is_featured,
+        is_new: form.is_new,
+        is_best_seller: form.is_best_seller,
+      };
+
+      let productId = editId;
+
+      if (editId) {
+        const { error } = await supabase.from('products').update(productData).eq('id', editId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('products').insert(productData).select().single();
+        if (error) throw error;
+        productId = data.id;
+      }
+
+      // Upload new images
+      for (let i = 0; i < imageFiles.length; i++) {
+        const file = imageFiles[i];
+        const ext = file.name.split('.').pop();
+        const path = `${productId}/${Date.now()}_${i}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('product-images').upload(path, file);
+        if (uploadErr) { toast.error(`Image upload failed: ${uploadErr.message}`); continue; }
+
+        const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
+        await supabase.from('product_images').insert({
+          product_id: productId!,
+          url: urlData.publicUrl,
+          sort_order: existingImages.length + i,
+        });
+      }
+
+      toast.success(editId ? 'Product updated' : 'Product created');
+      queryClient.invalidateQueries({ queryKey: ['all-products'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setShowDialog(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save product');
+    }
+    setSaving(false);
+  };
+
+  const removeExistingImage = async (imgId: string) => {
+    await supabase.from('product_images').delete().eq('id', imgId);
+    setExistingImages(prev => prev.filter(i => i.id !== imgId));
   };
 
   const filtered = products?.filter(p => p.name.toLowerCase().includes(search.toLowerCase())) || [];
@@ -27,7 +124,7 @@ const AdminProducts = () => {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-bold">Products</h1>
-        <Button><Plus className="h-4 w-4 mr-2" />Add Product</Button>
+        <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Product</Button>
       </div>
       <Card className="border-0 shadow-card mb-6">
         <CardContent className="p-4">
@@ -62,7 +159,9 @@ const AdminProducts = () => {
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{product.sku || '—'}</td>
                       <td className="py-3 px-4 font-medium">${product.discount_price ?? product.price}</td>
-                      <td className="py-3 px-4">{product.stock}</td>
+                      <td className="py-3 px-4">
+                        <span className={product.stock <= 5 ? 'text-destructive font-medium' : ''}>{product.stock}</span>
+                      </td>
                       <td className="py-3 px-4">
                         <Badge variant={product.stock > 0 ? 'default' : 'destructive'} className="text-xs border-0">
                           {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
@@ -70,7 +169,7 @@ const AdminProducts = () => {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3 w-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(product)}><Pencil className="h-3 w-3" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(product.id)}><Trash2 className="h-3 w-3" /></Button>
                         </div>
                       </td>
@@ -82,6 +181,76 @@ const AdminProducts = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editId ? 'Edit Product' : 'Add Product'}</DialogTitle></DialogHeader>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2"><Label>Name</Label><Input className="mt-1" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value, slug: generateSlug(e.target.value) }))} /></div>
+            <div className="sm:col-span-2"><Label>Slug</Label><Input className="mt-1" value={form.slug} onChange={e => setForm(p => ({ ...p, slug: e.target.value }))} /></div>
+            <div><Label>Price ($)</Label><Input className="mt-1" type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} /></div>
+            <div><Label>Discount Price ($)</Label><Input className="mt-1" type="number" value={form.discount_price} onChange={e => setForm(p => ({ ...p, discount_price: e.target.value }))} /></div>
+            <div><Label>Stock</Label><Input className="mt-1" type="number" value={form.stock} onChange={e => setForm(p => ({ ...p, stock: e.target.value }))} /></div>
+            <div><Label>SKU</Label><Input className="mt-1" value={form.sku} onChange={e => setForm(p => ({ ...p, sku: e.target.value }))} /></div>
+            <div>
+              <Label>Category</Label>
+              <Select value={form.category_id} onValueChange={v => setForm(p => ({ ...p, category_id: v }))}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectContent>{categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Brand</Label>
+              <Select value={form.brand_id} onValueChange={v => setForm(p => ({ ...p, brand_id: v }))}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select brand" /></SelectTrigger>
+                <SelectContent>{brands?.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="sm:col-span-2"><Label>Short Description</Label><Input className="mt-1" value={form.short_description} onChange={e => setForm(p => ({ ...p, short_description: e.target.value }))} /></div>
+            <div className="sm:col-span-2"><Label>Description</Label><Textarea className="mt-1" rows={4} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} /></div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2"><Switch checked={form.is_featured} onCheckedChange={v => setForm(p => ({ ...p, is_featured: v }))} /><Label>Featured</Label></div>
+              <div className="flex items-center gap-2"><Switch checked={form.is_new} onCheckedChange={v => setForm(p => ({ ...p, is_new: v }))} /><Label>New</Label></div>
+              <div className="flex items-center gap-2"><Switch checked={form.is_best_seller} onCheckedChange={v => setForm(p => ({ ...p, is_best_seller: v }))} /><Label>Best Seller</Label></div>
+            </div>
+          </div>
+
+          {/* Images */}
+          <div className="mt-4">
+            <Label>Images</Label>
+            <div className="flex flex-wrap gap-3 mt-2">
+              {existingImages.map(img => (
+                <div key={img.id} className="relative w-20 h-20 rounded-lg overflow-hidden border">
+                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  <button onClick={() => removeExistingImage(img.id)} className="absolute top-1 right-1 p-0.5 rounded-full bg-destructive text-destructive-foreground">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {imageFiles.map((f, i) => (
+                <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border">
+                  <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
+                  <button onClick={() => setImageFiles(p => p.filter((_, j) => j !== i))} className="absolute top-1 right-1 p-0.5 rounded-full bg-destructive text-destructive-foreground">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              <label className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                <Upload className="h-5 w-5 text-muted-foreground" />
+                <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                  if (e.target.files) setImageFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+                }} />
+              </label>
+            </div>
+          </div>
+
+          <Button className="mt-4 w-full" onClick={handleSave} disabled={saving || !form.name || !form.price}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            {editId ? 'Update Product' : 'Create Product'}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
