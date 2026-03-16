@@ -6,7 +6,7 @@ import MorphingText from '@/components/magicui/MorphingText';
 import Meteors from '@/components/magicui/Meteors';
 
 const HeroSection = () => (
-  <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+  <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-16 sm:pt-16">
     {/* Ambient background */}
     <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-secondary/20" />
     <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-primary/5 blur-[120px]" />
@@ -21,7 +21,7 @@ const HeroSection = () => (
           transition={{ duration: 0.6 }}
         >
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-sm font-medium mb-8">
-            <Sparkles className="h-3.5 w-3.5" /> The Future of Tech Shopping
+            <Sparkles className="h-3.5 w-3.5" /> eMobiles
           </span>
         </motion.div>
 
@@ -31,7 +31,7 @@ const HeroSection = () => (
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
         >
-          Experience{' '}
+          Future of Tech Shopping{' '}
           <MorphingText
             texts={['Innovation', 'Technology', 'Excellence', 'The Future']}
             className="text-gradient"

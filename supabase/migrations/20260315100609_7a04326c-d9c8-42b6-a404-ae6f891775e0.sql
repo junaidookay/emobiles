@@ -3,7 +3,7 @@
 INSERT INTO public.categories (name, slug, icon, image, product_count) VALUES
 ('Mobiles', 'mobiles', 'Smartphone', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop', 48),
 ('Watches', 'watches', 'Watch', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop', 32),
-('Earbuds', 'earbuds', 'Headphones', 'https://images.unsplash.com/photo-1590658268037-6bf12f032f55?w=400&h=400&fit=crop', 56),
+('Earbuds', 'earbuds', 'Headphones', 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop', 56),
 ('Headphones', 'headphones', 'Headphones', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', 28),
 ('Neckbands', 'neckbands', 'Music', 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&h=400&fit=crop', 18),
 ('Mobile Accessories', 'mobile-accessories', 'Cable', 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop', 94),
@@ -13,7 +13,7 @@ INSERT INTO public.categories (name, slug, icon, image, product_count) VALUES
 ('Bluetooth Speakers', 'bluetooth-speakers', 'Speaker', 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop', 35),
 ('Power Banks', 'power-banks', 'Battery', 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400&h=400&fit=crop', 24),
 ('Action Cameras', 'action-cameras', 'Camera', 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=400&fit=crop', 12),
-('Car Accessories', 'car-accessories', 'Car', 'https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=400&h=400&fit=crop', 29),
+('Car Accessories', 'car-accessories', 'Car', 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=400&fit=crop', 29),
 ('Power Extensions', 'power-extensions', 'Plug', 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop', 15),
 ('Projectors', 'projectors', 'Projector', 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&h=400&fit=crop', 8),
 ('WiFi Routers', 'wifi-routers', 'Wifi', 'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?w=400&h=400&fit=crop', 11);

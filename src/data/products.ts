@@ -87,7 +87,7 @@ export const products: Product[] = [
     shortDescription: 'Hi-Res, ANC, Transparent Design',
     price: 149, discountPrice: 129, stock: 40, sku: 'NTH-EAR2-WHT',
     brandId: '31', categoryId: '3',
-    images: ['https://images.unsplash.com/photo-1590658268037-6bf12f032f55?w=600&h=600&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=600&h=600&fit=crop'],
     specifications: { 'Driver': '11.6mm', 'ANC': 'Personalized', 'Battery': '6.3h (36h total)', 'Codec': 'LHDC 5.0' },
     rating: 4.4, reviewCount: 156, isFeatured: false, isNew: true, isBestSeller: false, createdAt: '2024-01-25',
   },
