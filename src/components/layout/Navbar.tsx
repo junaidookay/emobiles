@@ -14,7 +14,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
-import { useCategories } from '@/hooks/useProducts';
+import { useCategories, useUserRoles } from '@/hooks/useProducts';
 import { useState, useEffect, useRef } from 'react';
 import SearchCommand from '@/components/layout/SearchCommand';
 import gsap from 'gsap';
