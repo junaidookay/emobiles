@@ -34,6 +34,8 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { data: categories } = useCategories();
+  const { data: roles } = useUserRoles();
+  const isAdmin = roles?.some(r => r.role === 'admin');
   const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
   const navRef = useRef<HTMLElement>(null);
