@@ -58,7 +58,7 @@ const Navbar = () => {
         {/* Top bar */}
         <div className="bg-foreground text-background text-xs py-2">
           <div className="container flex justify-between items-center">
-            <p className="font-medium tracking-wide">Free shipping on orders over $50 ✦ Premium Electronics</p>
+            <p className="font-medium tracking-wide">Free shipping on orders over PKR 50 ✦ Premium Electronics</p>
             <div className="hidden sm:flex gap-4">
               <Link to="/about" className="hover:opacity-80 transition-opacity">About</Link>
               <Link to="/faq" className="hover:opacity-80 transition-opacity">FAQ</Link>

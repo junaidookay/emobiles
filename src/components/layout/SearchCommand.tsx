@@ -127,7 +127,7 @@ const SearchCommand = ({ open, onOpenChange }: { open: boolean; onOpenChange: (o
                   </div>
                 </div>
                 <span className="text-sm font-bold shrink-0">
-                  ${product.discount_price ?? product.price}
+                  PKR {product.discount_price ?? product.price}
                 </span>
               </CommandItem>
             ))}

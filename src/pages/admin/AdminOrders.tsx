@@ -65,7 +65,7 @@ const AdminOrders = () => {
                   <tr key={order.id} className="border-b last:border-0 hover:bg-secondary/30">
                     <td className="py-3 px-4 font-medium">#{order.id.slice(0, 8)}</td>
                     <td className="py-3 px-4 text-muted-foreground">{(order as any).order_items?.length || 0}</td>
-                    <td className="py-3 px-4 font-medium">${order.total}</td>
+                    <td className="py-3 px-4 font-medium">PKR {order.total}</td>
                     <td className="py-3 px-4">
                       <Badge className={`text-xs ${statusColors[order.status] || ''}`}>{order.status}</Badge>
                     </td>
@@ -102,10 +102,10 @@ const AdminOrders = () => {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><span className="text-muted-foreground">Status:</span> <Badge className={statusColors[selectedOrder.status]}>{selectedOrder.status}</Badge></div>
                 <div><span className="text-muted-foreground">Date:</span> {new Date(selectedOrder.created_at).toLocaleDateString()}</div>
-                <div><span className="text-muted-foreground">Subtotal:</span> ${selectedOrder.subtotal}</div>
-                <div><span className="text-muted-foreground">Shipping:</span> ${selectedOrder.shipping_cost}</div>
-                {selectedOrder.discount > 0 && <div><span className="text-muted-foreground">Discount:</span> -${selectedOrder.discount}</div>}
-                <div><span className="text-muted-foreground font-semibold">Total:</span> <span className="font-bold">${selectedOrder.total}</span></div>
+                <div><span className="text-muted-foreground">Subtotal:</span> PKR {selectedOrder.subtotal}</div>
+                <div><span className="text-muted-foreground">Shipping:</span> PKR {selectedOrder.shipping_cost}</div>
+                {selectedOrder.discount > 0 && <div><span className="text-muted-foreground">Discount:</span> -PKR {selectedOrder.discount}</div>}
+                <div><span className="text-muted-foreground font-semibold">Total:</span> <span className="font-bold">PKR {selectedOrder.total}</span></div>
                 {selectedOrder.coupon_code && <div><span className="text-muted-foreground">Coupon:</span> {selectedOrder.coupon_code}</div>}
               </div>
 
@@ -117,7 +117,7 @@ const AdminOrders = () => {
                       {item.product_image && <img src={item.product_image} alt="" className="w-10 h-10 rounded-lg object-cover" />}
                       <div className="flex-1">
                         <p className="text-sm font-medium">{item.product_name}</p>
-                        <p className="text-xs text-muted-foreground">Qty: {item.quantity} × ${item.price}</p>
+                        <p className="text-xs text-muted-foreground">Qty: {item.quantity} × PKR {item.price}</p>
                       </div>
                     </div>
                   ))}

@@ -80,11 +80,11 @@ const ShowcaseCard = ({ product }: { product: ProductWithImages }) => {
             <div className="flex items-center gap-2">
               {product.discount_price ? (
                 <>
-                  <span className="font-display text-xl font-bold text-primary-foreground">${product.discount_price}</span>
-                  <span className="text-sm text-primary-foreground/40 line-through">${product.price}</span>
+                  <span className="font-display text-xl font-bold text-primary-foreground">PKR {product.discount_price}</span>
+                  <span className="text-sm text-primary-foreground/40 line-through">PKR {product.price}</span>
                 </>
               ) : (
-                <span className="font-display text-xl font-bold text-primary-foreground">${product.price}</span>
+                <span className="font-display text-xl font-bold text-primary-foreground">PKR {product.price}</span>
               )}
             </div>
           </div>

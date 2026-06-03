@@ -129,11 +129,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="flex items-center gap-2">
           {product.discount_price ? (
             <>
-              <span className="font-display font-bold text-lg">${product.discount_price}</span>
-              <span className="text-sm text-muted-foreground line-through">${product.price}</span>
+              <span className="font-display font-bold text-lg">PKR {product.discount_price}</span>
+              <span className="text-sm text-muted-foreground line-through">PKR {product.price}</span>
             </>
           ) : (
-            <span className="font-display font-bold text-lg">${product.price}</span>
+            <span className="font-display font-bold text-lg">PKR {product.price}</span>
           )}
         </div>
       </CardContent>

@@ -111,7 +111,7 @@ const Dashboard = () => {
               <Card className="border-0 shadow-card">
                 <CardContent className="p-4 text-center">
                   <DollarSign className="h-5 w-5 mx-auto text-primary mb-1" />
-                  <p className="font-display font-bold text-lg">${totalSpent.toFixed(0)}</p>
+                  <p className="font-display font-bold text-lg">PKR {totalSpent.toFixed(0)}</p>
                   <p className="text-xs text-muted-foreground">Spent</p>
                 </CardContent>
               </Card>
@@ -158,7 +158,7 @@ const Dashboard = () => {
                             </div>
                             <div className="flex items-center gap-3">
                               <Badge className={statusColors[order.status]}>{order.status}</Badge>
-                              <span className="font-display font-bold">${order.total}</span>
+                              <span className="font-display font-bold">PKR {order.total}</span>
                             </div>
                           </div>
                           {order.tracking_number && (
@@ -203,7 +203,7 @@ const Dashboard = () => {
                           </Link>
                           <div className="flex-1 min-w-0">
                             <Link to={`/product/${product.slug}`} className="font-display font-semibold text-sm hover:text-primary line-clamp-1">{product.name}</Link>
-                            <p className="font-bold mt-1">${product.discountPrice ?? product.price}</p>
+                            <p className="font-bold mt-1">PKR {product.discountPrice ?? product.price}</p>
                             <div className="flex gap-2 mt-2">
                               <Button size="sm" onClick={() => addToCart(product)}>Add to Cart</Button>
                               <Button size="sm" variant="ghost" onClick={() => removeFromWishlist(product.id)}>

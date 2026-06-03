@@ -93,7 +93,7 @@ const Checkout = () => {
     }
 
     if (coupon.min_order_amount && subtotal < Number(coupon.min_order_amount)) {
-      toast.error(`Minimum order amount is $${coupon.min_order_amount}`);
+      toast.error(`Minimum order amount is PKR ${coupon.min_order_amount}`);
       setApplyingCoupon(false);
       return;
     }
@@ -110,7 +110,7 @@ const Checkout = () => {
 
     setCouponDiscount(Math.min(discount, subtotal));
     setAppliedCoupon(coupon.code);
-    toast.success(`Coupon applied! You save $${Math.min(discount, subtotal).toFixed(2)}`);
+    toast.success(`Coupon applied! You save PKR ${Math.min(discount, subtotal).toFixed(2)}`);
     setApplyingCoupon(false);
   };
 
@@ -326,7 +326,7 @@ const Checkout = () => {
                             <span className="font-semibold text-sm">
                               {method.price === 0 || isFree ? (
                                 <Badge variant="secondary" className="text-xs">FREE</Badge>
-                              ) : `$${method.price}`}
+                              ) : `PKR ${method.price}`}
                             </span>
                           </label>
                         );
@@ -336,7 +336,7 @@ const Checkout = () => {
                     <p className="text-sm text-muted-foreground">No shipping methods available.</p>
                   )}
                   {subtotal < 50 && (
-                    <p className="text-xs text-muted-foreground mt-3">💡 Add ${(50 - subtotal).toFixed(2)} more to qualify for free shipping!</p>
+                    <p className="text-xs text-muted-foreground mt-3">💡 Add PKR {(50 - subtotal).toFixed(2)} more to qualify for free shipping!</p>
                   )}
                   <div className="flex gap-3 mt-6">
                     <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
@@ -367,7 +367,7 @@ const Checkout = () => {
                       <div>
                         <p className="text-sm font-medium mb-1">Shipping method:</p>
                         <p className="text-sm text-muted-foreground">
-                          {selectedShipping?.name} — {shippingCost === 0 ? 'FREE' : `$${shippingCost}`}
+                          {selectedShipping?.name} — {shippingCost === 0 ? 'FREE' : `PKR ${shippingCost}`}
                         </p>
                       </div>
                     </div>
@@ -385,7 +385,7 @@ const Checkout = () => {
                             <p className="text-sm font-medium line-clamp-1">{item.product.name}</p>
                             <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                           </div>
-                          <span className="text-sm font-semibold">${((item.product.discountPrice ?? item.product.price) * item.quantity).toFixed(2)}</span>
+                          <span className="text-sm font-semibold">PKR {((item.product.discountPrice ?? item.product.price) * item.quantity).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
@@ -396,7 +396,7 @@ const Checkout = () => {
                   <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
                   <Button className="flex-1" size="lg" onClick={handlePlaceOrder} disabled={placing}>
                     {placing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Place Order — ${total.toFixed(2)}
+                    Place Order — PKR {total.toFixed(2)}
                   </Button>
                 </div>
               </div>
@@ -412,19 +412,19 @@ const Checkout = () => {
                   {items.map(item => (
                     <div key={item.product.id} className="flex justify-between text-sm">
                       <span className="text-muted-foreground line-clamp-1 flex-1 mr-2">{item.product.name} × {item.quantity}</span>
-                      <span>${((item.product.discountPrice ?? item.product.price) * item.quantity).toFixed(2)}</span>
+                      <span>PKR {((item.product.discountPrice ?? item.product.price) * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
                 <Separator className="my-4" />
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>PKR {subtotal.toFixed(2)}</span></div>
                   {couponDiscount > 0 && (
-                    <div className="flex justify-between text-primary"><span>Discount ({appliedCoupon})</span><span>-${couponDiscount.toFixed(2)}</span></div>
+                    <div className="flex justify-between text-primary"><span>Discount ({appliedCoupon})</span><span>-PKR {couponDiscount.toFixed(2)}</span></div>
                   )}
-                  <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shippingCost === 0 ? 'FREE' : `PKR ${shippingCost.toFixed(2)}`}</span></div>
                   <Separator />
-                  <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>${total.toFixed(2)}</span></div>
+                  <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>PKR {total.toFixed(2)}</span></div>
                 </div>
 
                 {!appliedCoupon && (

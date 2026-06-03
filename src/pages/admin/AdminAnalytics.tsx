@@ -36,9 +36,9 @@ const AdminAnalytics = () => {
   const catData = Object.entries(catRevenue).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([category, revenue]) => ({ category, revenue: Math.round(revenue) }));
 
   const stats = [
-    { icon: DollarSign, label: 'Total Revenue', value: `$${totalRevenue.toLocaleString()}`, color: 'text-success', bg: 'bg-success/10' },
+    { icon: DollarSign, label: 'Total Revenue', value: `PKR ${totalRevenue.toLocaleString()}`, color: 'text-success', bg: 'bg-success/10' },
     { icon: ShoppingCart, label: 'Total Orders', value: String(totalOrders), color: 'text-primary', bg: 'bg-primary/10' },
-    { icon: TrendingUp, label: 'Avg. Order Value', value: `$${avgOrderValue.toFixed(2)}`, color: 'text-accent', bg: 'bg-accent/10' },
+    { icon: TrendingUp, label: 'Avg. Order Value', value: `PKR ${avgOrderValue.toFixed(2)}`, color: 'text-accent', bg: 'bg-accent/10' },
     { icon: Package, label: 'Products', value: String(products?.length || 0), color: 'text-warning', bg: 'bg-warning/10' },
   ];
 

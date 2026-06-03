@@ -337,7 +337,7 @@ export const AdminCoupons = () => {
                   {coupons?.map(c => (
                     <tr key={c.id} className="border-b last:border-0 hover:bg-secondary/30">
                       <td className="py-3 px-4 font-mono font-medium">{c.code}</td>
-                      <td className="py-3 px-4">{c.discount_type === 'percentage' ? `${c.discount_value}%` : `$${c.discount_value}`}</td>
+                      <td className="py-3 px-4">{c.discount_type === 'percentage' ? `${c.discount_value}%` : `PKR ${c.discount_value}`}</td>
                       <td className="py-3 px-4">{c.used_count || 0}{c.max_uses ? `/${c.max_uses}` : ''}</td>
                       <td className="py-3 px-4"><Badge variant={c.is_active ? 'default' : 'secondary'} className="text-xs border-0">{c.is_active ? 'Active' : 'Inactive'}</Badge></td>
                       <td className="py-3 px-4 text-right"><div className="flex justify-end gap-1">
@@ -368,7 +368,7 @@ export const AdminCoupons = () => {
               <div><Label>Value</Label><Input className="mt-1" type="number" value={form.discount_value} onChange={e => setForm(p => ({ ...p, discount_value: e.target.value }))} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Min Order ($)</Label><Input className="mt-1" type="number" value={form.min_order_amount} onChange={e => setForm(p => ({ ...p, min_order_amount: e.target.value }))} /></div>
+              <div><Label>Min Order (PKR)</Label><Input className="mt-1" type="number" value={form.min_order_amount} onChange={e => setForm(p => ({ ...p, min_order_amount: e.target.value }))} /></div>
               <div><Label>Max Uses</Label><Input className="mt-1" type="number" value={form.max_uses} onChange={e => setForm(p => ({ ...p, max_uses: e.target.value }))} /></div>
             </div>
             <div><Label>Expires At</Label><Input className="mt-1" type="date" value={form.expires_at} onChange={e => setForm(p => ({ ...p, expires_at: e.target.value }))} /></div>

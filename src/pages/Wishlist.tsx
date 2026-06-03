@@ -41,8 +41,8 @@ const Wishlist = () => {
                 <div className="flex-1 min-w-0">
                   <Link to={`/product/${product.slug}`} className="font-display font-semibold text-sm hover:text-primary line-clamp-2">{product.name}</Link>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="font-bold">${product.discountPrice ?? product.price}</span>
-                    {product.discountPrice && <span className="text-xs text-muted-foreground line-through">${product.price}</span>}
+                    <span className="font-bold">PKR {product.discountPrice ?? product.price}</span>
+                    {product.discountPrice && <span className="text-xs text-muted-foreground line-through">PKR {product.price}</span>}
                   </div>
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" className="flex-1" onClick={() => addToCart(product)}>

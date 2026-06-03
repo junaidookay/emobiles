@@ -40,11 +40,11 @@ export const ShippingPolicy = () => (
   <StaticPage title="Shipping Policy">
     <p>We offer multiple shipping options to meet your needs.</p>
     <h2 className="font-display text-xl font-semibold text-foreground mt-6">Standard Shipping</h2>
-    <p>5-7 business days. $5.99 flat rate.</p>
+    <p>5-7 business days. PKR 5.99 flat rate.</p>
     <h2 className="font-display text-xl font-semibold text-foreground mt-6">Express Shipping</h2>
-    <p>2-3 business days. $14.99.</p>
+    <p>2-3 business days. PKR 14.99.</p>
     <h2 className="font-display text-xl font-semibold text-foreground mt-6">Free Shipping</h2>
-    <p>Available on all orders over $50. Delivered in 7-10 business days.</p>
+    <p>Available on all orders over PKR 50. Delivered in 7-10 business days.</p>
   </StaticPage>
 );
 

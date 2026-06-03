@@ -161,12 +161,12 @@ const ProductDetail = () => {
             <div className="flex items-baseline gap-3 mb-6">
               {product.discount_price ? (
                 <>
-                  <span className="font-display text-4xl font-bold">${product.discount_price}</span>
-                  <span className="text-lg text-muted-foreground line-through">${product.price}</span>
+                  <span className="font-display text-4xl font-bold">PKR {product.discount_price}</span>
+                  <span className="text-lg text-muted-foreground line-through">PKR {product.price}</span>
                   <Badge className="bg-accent text-accent-foreground border-0">Save {discount}%</Badge>
                 </>
               ) : (
-                <span className="font-display text-4xl font-bold">${product.price}</span>
+                <span className="font-display text-4xl font-bold">PKR {product.price}</span>
               )}
             </div>
 
@@ -192,7 +192,7 @@ const ProductDetail = () => {
 
             <div className="space-y-3">
               {[
-                { icon: Truck, text: 'Free shipping on orders over $50' },
+                { icon: Truck, text: 'Free shipping on orders over PKR 50' },
                 { icon: Shield, text: '2-year warranty included' },
                 { icon: RotateCcw, text: '30-day return policy' },
               ].map(({ icon: Icon, text }) => (

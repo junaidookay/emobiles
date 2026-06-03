@@ -59,7 +59,7 @@ const Cart = () => {
                           </Button>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="font-display font-bold">${(price * item.quantity).toFixed(2)}</span>
+                          <span className="font-display font-bold">PKR {(price * item.quantity).toFixed(2)}</span>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeFromCart(item.product.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -77,10 +77,10 @@ const Cart = () => {
               <CardContent className="p-6">
                 <h3 className="font-display font-semibold text-lg mb-4">Order Summary</h3>
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>PKR {subtotal.toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? 'FREE' : `PKR ${shipping.toFixed(2)}`}</span></div>
                   <Separator />
-                  <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>${total.toFixed(2)}</span></div>
+                  <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>PKR {total.toFixed(2)}</span></div>
                 </div>
                 <div className="flex gap-2 mt-4">
                   <Input placeholder="Coupon code" value={couponCode} onChange={e => setCouponCode(e.target.value)} className="h-9" />

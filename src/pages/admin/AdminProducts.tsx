@@ -170,7 +170,7 @@ const AdminProducts = () => {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{product.sku || '—'}</td>
-                      <td className="py-3 px-4 font-medium">${product.discount_price && product.discount_price > 0 ? product.discount_price : product.price}</td>
+                      <td className="py-3 px-4 font-medium">PKR {product.discount_price && product.discount_price > 0 ? product.discount_price : product.price}</td>
                       <td className="py-3 px-4">
                         <span className={product.stock <= 5 ? 'text-destructive font-medium' : ''}>{product.stock}</span>
                       </td>
@@ -201,8 +201,8 @@ const AdminProducts = () => {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2"><Label>Name</Label><Input className="mt-1" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value, slug: generateSlug(e.target.value) }))} /></div>
             <div className="sm:col-span-2"><Label>Slug</Label><Input className="mt-1" value={form.slug} onChange={e => setForm(p => ({ ...p, slug: e.target.value }))} /></div>
-            <div><Label>Price ($)</Label><Input className="mt-1" type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} /></div>
-            <div><Label>Discount Price ($)</Label><Input className="mt-1" type="number" value={form.discount_price} onChange={e => setForm(p => ({ ...p, discount_price: e.target.value }))} /></div>
+            <div><Label>Price (PKR)</Label><Input className="mt-1" type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} /></div>
+            <div><Label>Discount Price (PKR)</Label><Input className="mt-1" type="number" value={form.discount_price} onChange={e => setForm(p => ({ ...p, discount_price: e.target.value }))} /></div>
             <div><Label>Stock</Label><Input className="mt-1" type="number" value={form.stock} onChange={e => setForm(p => ({ ...p, stock: e.target.value }))} /></div>
             <div><Label>SKU</Label><Input className="mt-1" value={form.sku} onChange={e => setForm(p => ({ ...p, sku: e.target.value }))} /></div>
             <div>

@@ -100,8 +100,8 @@ const Shop = () => {
         <h4 className="font-display font-semibold mb-3">Price Range</h4>
         <Slider min={0} max={1500} step={10} value={priceRange} onValueChange={setPriceRange} className="mb-3" />
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>${priceRange[0]}</span>
-          <span>${priceRange[1]}</span>
+          <span>PKR {priceRange[0]}</span>
+          <span>PKR {priceRange[1]}</span>
         </div>
       </div>
       <Button variant="outline" className="w-full" onClick={() => { setSelectedCategories([]); setSelectedBrands([]); setPriceRange([0, 1500]); }}>

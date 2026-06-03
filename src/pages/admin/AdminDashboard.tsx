@@ -14,7 +14,7 @@ const AdminDashboard = () => {
   const outOfStock = products?.filter(p => p.stock === 0) || [];
 
   const stats = [
-    { icon: DollarSign, label: 'Revenue', value: `$${totalRevenue.toLocaleString()}`, color: 'text-success', bg: 'bg-success/10' },
+    { icon: DollarSign, label: 'Revenue', value: `PKR ${totalRevenue.toLocaleString()}`, color: 'text-success', bg: 'bg-success/10' },
     { icon: ShoppingCart, label: 'Orders', value: String(totalOrders), color: 'text-primary', bg: 'bg-primary/10' },
     { icon: Package, label: 'Products', value: String(totalProducts), color: 'text-accent', bg: 'bg-accent/10' },
     { icon: AlertTriangle, label: 'Low Stock', value: String(lowStockProducts.length + outOfStock.length), color: 'text-warning', bg: 'bg-warning/10' },
@@ -62,7 +62,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge variant="secondary" className="text-xs">{order.status}</Badge>
-                      <span className="text-sm font-semibold">${order.total}</span>
+                      <span className="text-sm font-semibold">PKR {order.total}</span>
                     </div>
                   </div>
                 ))}
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
                         <p className="text-xs text-muted-foreground">{p.count} sold</p>
                       </div>
                     </div>
-                    <span className="text-sm font-semibold">${p.revenue.toFixed(0)}</span>
+                    <span className="text-sm font-semibold">PKR {p.revenue.toFixed(0)}</span>
                   </div>
                 ))}
               </div>

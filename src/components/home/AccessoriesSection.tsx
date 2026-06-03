@@ -81,11 +81,11 @@ const AccessoryCard = ({ product }: { product: ProductWithImages }) => {
             <div className="flex items-center gap-2">
               {product.discount_price ? (
                 <>
-                  <span className="font-display font-bold">${product.discount_price}</span>
-                  <span className="text-xs text-muted-foreground line-through">${product.price}</span>
+                  <span className="font-display font-bold">PKR {product.discount_price}</span>
+                  <span className="text-xs text-muted-foreground line-through">PKR {product.price}</span>
                 </>
               ) : (
-                <span className="font-display font-bold">${product.price}</span>
+                <span className="font-display font-bold">PKR {product.price}</span>
               )}
             </div>
             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={handleAddToCart}>

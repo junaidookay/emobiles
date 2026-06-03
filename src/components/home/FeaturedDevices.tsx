@@ -75,11 +75,11 @@ const FeaturedCard = ({ product, large }: { product: ProductWithImages; large?: 
             <div className="flex items-center gap-3">
               {product.discount_price ? (
                 <>
-                  <span className="font-display text-2xl font-bold text-primary-foreground">${product.discount_price}</span>
-                  <span className="text-sm text-primary-foreground/50 line-through">${product.price}</span>
+                  <span className="font-display text-2xl font-bold text-primary-foreground">PKR {product.discount_price}</span>
+                  <span className="text-sm text-primary-foreground/50 line-through">PKR {product.price}</span>
                 </>
               ) : (
-                <span className="font-display text-2xl font-bold text-primary-foreground">${product.price}</span>
+                <span className="font-display text-2xl font-bold text-primary-foreground">PKR {product.price}</span>
               )}
             </div>
           </div>
