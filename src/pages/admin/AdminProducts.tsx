@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 const emptyProduct = {
   name: '', slug: '', description: '', short_description: '', price: '', discount_price: '',
   stock: '0', sku: '', category_id: '', brand_id: '', is_featured: false, is_new: false, is_best_seller: false,
+  color: '', memory: '',
 };
 
 const AdminProducts = () => {
@@ -31,6 +32,7 @@ const AdminProducts = () => {
   const [saving, setSaving] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<{ id: string; url: string }[]>([]);
+  const [existingSpecs, setExistingSpecs] = useState<Record<string, string>>({});
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from('products').delete().eq('id', id);
@@ -39,17 +41,20 @@ const AdminProducts = () => {
   };
 
   const openAdd = () => {
-    setEditId(null); setForm(emptyProduct); setImageFiles([]); setExistingImages([]); setShowDialog(true);
+    setEditId(null); setForm(emptyProduct); setImageFiles([]); setExistingImages([]); setExistingSpecs({}); setShowDialog(true);
   };
 
   const openEdit = (p: any) => {
+    const specs: Record<string, string> = { ...(p.specifications || {}) };
     setEditId(p.id);
     setForm({
       name: p.name, slug: p.slug, description: p.description || '', short_description: p.short_description || '',
       price: String(p.price), discount_price: p.discount_price ? String(p.discount_price) : '',
       stock: String(p.stock), sku: p.sku || '', category_id: p.category_id || '', brand_id: p.brand_id || '',
       is_featured: p.is_featured, is_new: p.is_new, is_best_seller: p.is_best_seller,
+      color: specs.color || '', memory: specs.memory || '',
     });
+    setExistingSpecs(specs);
     setExistingImages(p.product_images?.map((i: any) => ({ id: i.id, url: i.url })) || []);
     setImageFiles([]);
     setShowDialog(true);
@@ -60,6 +65,12 @@ const AdminProducts = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const specs: Record<string, string> = { ...existingSpecs };
+      if (form.color.trim()) specs.color = form.color.trim();
+      else delete specs.color;
+      if (form.memory.trim()) specs.memory = form.memory.trim();
+      else delete specs.memory;
+
       const productData: any = {
         name: form.name,
         slug: form.slug || generateSlug(form.name),
@@ -74,6 +85,7 @@ const AdminProducts = () => {
         is_featured: form.is_featured,
         is_new: form.is_new,
         is_best_seller: form.is_best_seller,
+        specifications: specs,
       };
 
       let productId = editId;
@@ -158,7 +170,7 @@ const AdminProducts = () => {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{product.sku || '—'}</td>
-                      <td className="py-3 px-4 font-medium">${product.discount_price ?? product.price}</td>
+                      <td className="py-3 px-4 font-medium">${product.discount_price && product.discount_price > 0 ? product.discount_price : product.price}</td>
                       <td className="py-3 px-4">
                         <span className={product.stock <= 5 ? 'text-destructive font-medium' : ''}>{product.stock}</span>
                       </td>
@@ -209,6 +221,8 @@ const AdminProducts = () => {
             </div>
             <div className="sm:col-span-2"><Label>Short Description</Label><Input className="mt-1" value={form.short_description} onChange={e => setForm(p => ({ ...p, short_description: e.target.value }))} /></div>
             <div className="sm:col-span-2"><Label>Description</Label><Textarea className="mt-1" rows={4} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} /></div>
+            <div><Label>Color</Label><Input className="mt-1" placeholder="e.g. Midnight Black" value={form.color} onChange={e => setForm(p => ({ ...p, color: e.target.value }))} /></div>
+            <div><Label>Memory</Label><Input className="mt-1" placeholder="e.g. 128GB" value={form.memory} onChange={e => setForm(p => ({ ...p, memory: e.target.value }))} /></div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2"><Switch checked={form.is_featured} onCheckedChange={v => setForm(p => ({ ...p, is_featured: v }))} /><Label>Featured</Label></div>
               <div className="flex items-center gap-2"><Switch checked={form.is_new} onCheckedChange={v => setForm(p => ({ ...p, is_new: v }))} /><Label>New</Label></div>
