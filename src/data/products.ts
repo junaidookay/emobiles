@@ -148,12 +148,12 @@ export const blogPosts: BlogPost[] = [
 ];
 
 export const shippingMethods: ShippingMethod[] = [
-  { id: '1', name: 'Standard Shipping', description: 'Delivered in 5-7 business days', price: 5.99, estimatedDays: '5-7 days' },
-  { id: '2', name: 'Express Shipping', description: 'Delivered in 2-3 business days', price: 14.99, estimatedDays: '2-3 days' },
-  { id: '3', name: 'Free Shipping', description: 'Free on orders over PKR 50', price: 0, estimatedDays: '7-10 days' },
+  { id: '1', name: 'Standard Shipping', description: 'Delivered in 5-7 business days', price: 1670, estimatedDays: '5-7 days' },
+  { id: '2', name: 'Express Shipping', description: 'Delivered in 2-3 business days', price: 4180, estimatedDays: '2-3 days' },
+  { id: '3', name: 'Free Shipping', description: 'Free on orders over PKR 14000', price: 0, estimatedDays: '7-10 days' },
 ];
 
 export const coupons: Coupon[] = [
-  { id: '1', code: 'WELCOME10', discountType: 'percentage', discountValue: 10, minOrderAmount: 50, expiresAt: '2025-12-31', isActive: true },
-  { id: '2', code: 'SAVE20', discountType: 'fixed', discountValue: 20, minOrderAmount: 100, expiresAt: '2025-06-30', isActive: true },
+  { id: '1', code: 'WELCOME10', discountType: 'percentage', discountValue: 10, minOrderAmount: 13940, expiresAt: '2025-12-31', isActive: true },
+  { id: '2', code: 'SAVE20', discountType: 'fixed', discountValue: 5580, minOrderAmount: 27880, expiresAt: '2025-06-30', isActive: true },
 ];

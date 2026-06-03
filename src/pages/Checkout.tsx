@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { Loader2, MapPin, Truck, CreditCard, Check } from 'lucide-react';
 
 const steps = ['Address', 'Shipping', 'Review & Pay'];
+const FREE_SHIPPING_THRESHOLD = 14000;
 
 const Checkout = () => {
   const { items, subtotal, clearCart } = useCart();
@@ -335,8 +336,8 @@ const Checkout = () => {
                   ) : (
                     <p className="text-sm text-muted-foreground">No shipping methods available.</p>
                   )}
-                  {subtotal < 50 && (
-                    <p className="text-xs text-muted-foreground mt-3">💡 Add PKR {(50 - subtotal).toFixed(2)} more to qualify for free shipping!</p>
+                  {subtotal < FREE_SHIPPING_THRESHOLD && (
+                    <p className="text-xs text-muted-foreground mt-3">💡 Add PKR {(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2)} more to qualify for free shipping!</p>
                   )}
                   <div className="flex gap-3 mt-6">
                     <Button variant="outline" onClick={() => setStep(0)}>Back</Button>

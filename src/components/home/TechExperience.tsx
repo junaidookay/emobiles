@@ -8,7 +8,7 @@ const features = [
   { icon: Wifi, title: 'Next-Gen Connectivity', desc: '5G & WiFi 7 ready devices' },
   { icon: Shield, title: 'Premium Build', desc: 'Military-grade durability standards' },
   { icon: Zap, title: 'Fast Charging', desc: '0-80% in just 30 minutes' },
-  { icon: Truck, title: 'Free Shipping', desc: 'On all orders over PKR 50' },
+  { icon: Truck, title: 'Free Shipping', desc: 'On all orders over PKR 14,000' },
 ];
 
 const TechExperience = () => (

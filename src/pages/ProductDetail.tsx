@@ -192,7 +192,7 @@ const ProductDetail = () => {
 
             <div className="space-y-3">
               {[
-                { icon: Truck, text: 'Free shipping on orders over PKR 50' },
+                { icon: Truck, text: 'Free shipping on orders over PKR 14,000' },
                 { icon: Shield, text: '2-year warranty included' },
                 { icon: RotateCcw, text: '30-day return policy' },
               ].map(({ icon: Icon, text }) => (
