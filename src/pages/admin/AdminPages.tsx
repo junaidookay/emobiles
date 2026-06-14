@@ -429,7 +429,7 @@ export const AdminSettings = () => {
           <CardContent className="p-6 space-y-4">
             <div><Label>Store Name</Label><Input className="mt-1" defaultValue="eMobiles" /></div>
             <div><Label>Support Email</Label><Input className="mt-1" defaultValue="support@emobiles.com" /></div>
-            <div><Label>Free Shipping Threshold ($)</Label><Input className="mt-1" type="number" defaultValue="50" /></div>
+              <div><Label>Free Shipping Threshold (PKR)</Label><Input className="mt-1" type="number" defaultValue="14000" /></div>
             <Button>Save Settings</Button>
           </CardContent>
         </Card>

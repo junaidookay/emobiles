@@ -225,11 +225,11 @@ const ProductDetail = () => {
 
             <div className="flex items-baseline gap-3 mb-6">
               <motion.span key={currentPrice} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="font-display text-4xl font-bold">
-                ${currentPrice.toLocaleString()}
+                PKR {currentPrice.toLocaleString()}
               </motion.span>
               {compareAt && (
                 <>
-                  <span className="text-lg text-muted-foreground line-through">${compareAt.toLocaleString()}</span>
+                  <span className="text-lg text-muted-foreground line-through">PKR {compareAt.toLocaleString()}</span>
                   {discount > 0 && <Badge className="bg-accent text-accent-foreground border-0">Save {discount}%</Badge>}
                 </>
               )}
@@ -280,7 +280,7 @@ const ProductDetail = () => {
                         className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all flex flex-col items-start ${active ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
                       >
                         <span>{opt}</span>
-                        {variant && <span className="text-xs text-muted-foreground mt-0.5">${(variant.discountPrice ?? variant.price).toLocaleString()}</span>}
+                        {variant && <span className="text-xs text-muted-foreground mt-0.5">PKR {(variant.discountPrice ?? variant.price).toLocaleString()}</span>}
                       </button>
                     );
                   })}
@@ -314,7 +314,7 @@ const ProductDetail = () => {
 
             <div className="space-y-3">
               {[
-                { icon: Truck, text: 'Free shipping on orders over $50' },
+                { icon: Truck, text: 'Free shipping on orders over PKR 14,000' },
                 { icon: Shield, text: '2-year warranty included' },
                 { icon: RotateCcw, text: '30-day return policy' },
               ].map(({ icon: Icon, text }) => (
