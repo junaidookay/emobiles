@@ -18,7 +18,6 @@ import { toast } from 'sonner';
 import { Loader2, MapPin, Truck, CreditCard, Check } from 'lucide-react';
 
 const steps = ['Address', 'Shipping', 'Review & Pay'];
-const FREE_SHIPPING_THRESHOLD = 14000;
 
 const Checkout = () => {
   const { items, subtotal, clearCart } = useCart();
@@ -94,7 +93,7 @@ const Checkout = () => {
     }
 
     if (coupon.min_order_amount && subtotal < Number(coupon.min_order_amount)) {
-      toast.error(`Minimum order amount is PKR ${coupon.min_order_amount}`);
+      toast.error(`Minimum order amount is $${coupon.min_order_amount}`);
       setApplyingCoupon(false);
       return;
     }
@@ -111,7 +110,7 @@ const Checkout = () => {
 
     setCouponDiscount(Math.min(discount, subtotal));
     setAppliedCoupon(coupon.code);
-    toast.success(`Coupon applied! You save PKR ${Math.min(discount, subtotal).toFixed(2)}`);
+    toast.success(`Coupon applied! You save $${Math.min(discount, subtotal).toFixed(2)}`);
     setApplyingCoupon(false);
   };
 
@@ -160,27 +159,30 @@ const Checkout = () => {
         .single();
       if (orderErr) throw orderErr;
 
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        product_id: item.product.id,
-        product_name: item.product.name,
-        product_image: item.product.images[0] || null,
-        price: item.product.discountPrice ?? item.product.price,
-        quantity: item.quantity,
-      }));
+      // Create order items (snapshot variant info)
+      const orderItems = items.map(item => {
+        const v = item.variant;
+        const price = v ? (v.discountPrice ?? v.price) : (item.product.discountPrice ?? item.product.price);
+        const image = v?.images[0] || item.product.images[0] || null;
+        const label = v ? [v.color, v.storage].filter(Boolean).join(' · ') : null;
+        return {
+          order_id: order.id,
+          product_id: item.product.id,
+          product_name: item.product.name,
+          product_image: image,
+          price,
+          quantity: item.quantity,
+          variant_id: v?.id ?? null,
+          variant_label: label,
+          variant_color: v?.color ?? null,
+          variant_storage: v?.storage ?? null,
+        };
+      });
 
       const { error: itemsErr } = await supabase.from('order_items').insert(orderItems);
       if (itemsErr) throw itemsErr;
 
-      // Update coupon usage
-      if (appliedCoupon) {
-        supabase
-          .from('coupons')
-          .update({ used_count: 1 })
-          .eq('code', appliedCoupon)
-          .then(() => {});
-      }
+      // Coupon usage is incremented server-side after successful payment.
 
       // Try Stripe checkout
       try {
@@ -327,7 +329,7 @@ const Checkout = () => {
                             <span className="font-semibold text-sm">
                               {method.price === 0 || isFree ? (
                                 <Badge variant="secondary" className="text-xs">FREE</Badge>
-                              ) : `PKR ${method.price}`}
+                              ) : `$${method.price}`}
                             </span>
                           </label>
                         );
@@ -336,8 +338,8 @@ const Checkout = () => {
                   ) : (
                     <p className="text-sm text-muted-foreground">No shipping methods available.</p>
                   )}
-                  {subtotal < FREE_SHIPPING_THRESHOLD && (
-                    <p className="text-xs text-muted-foreground mt-3">💡 Add PKR {(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2)} more to qualify for free shipping!</p>
+                  {subtotal < 50 && (
+                    <p className="text-xs text-muted-foreground mt-3">💡 Add ${(50 - subtotal).toFixed(2)} more to qualify for free shipping!</p>
                   )}
                   <div className="flex gap-3 mt-6">
                     <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
@@ -368,7 +370,7 @@ const Checkout = () => {
                       <div>
                         <p className="text-sm font-medium mb-1">Shipping method:</p>
                         <p className="text-sm text-muted-foreground">
-                          {selectedShipping?.name} — {shippingCost === 0 ? 'FREE' : `PKR ${shippingCost}`}
+                          {selectedShipping?.name} — {shippingCost === 0 ? 'FREE' : `$${shippingCost}`}
                         </p>
                       </div>
                     </div>
@@ -379,16 +381,21 @@ const Checkout = () => {
                   <CardContent className="p-6">
                     <h3 className="font-display font-semibold mb-4">Order Items</h3>
                     <div className="space-y-3">
-                      {items.map(item => (
-                        <div key={item.product.id} className="flex items-center gap-3">
-                          <img src={item.product.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium line-clamp-1">{item.product.name}</p>
-                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                      {items.map(item => {
+                        const price = item.variant ? (item.variant.discountPrice ?? item.variant.price) : (item.product.discountPrice ?? item.product.price);
+                        const image = item.variant?.images[0] || item.product.images[0];
+                        const label = item.variant ? [item.variant.color, item.variant.storage].filter(Boolean).join(' · ') : '';
+                        return (
+                          <div key={item.id} className="flex items-center gap-3">
+                            <img src={image} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium line-clamp-1">{item.product.name}</p>
+                              <p className="text-xs text-muted-foreground">{label ? `${label} • ` : ''}Qty: {item.quantity}</p>
+                            </div>
+                            <span className="text-sm font-semibold">${(price * item.quantity).toFixed(2)}</span>
                           </div>
-                          <span className="text-sm font-semibold">PKR {((item.product.discountPrice ?? item.product.price) * item.quantity).toFixed(2)}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
@@ -397,7 +404,7 @@ const Checkout = () => {
                   <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
                   <Button className="flex-1" size="lg" onClick={handlePlaceOrder} disabled={placing}>
                     {placing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Place Order — PKR {total.toFixed(2)}
+                    Place Order — ${total.toFixed(2)}
                   </Button>
                 </div>
               </div>
@@ -410,22 +417,25 @@ const Checkout = () => {
               <CardContent className="p-6">
                 <h3 className="font-display font-semibold text-lg mb-4">Order Summary</h3>
                 <div className="space-y-3 mb-4">
-                  {items.map(item => (
-                    <div key={item.product.id} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground line-clamp-1 flex-1 mr-2">{item.product.name} × {item.quantity}</span>
-                      <span>PKR {((item.product.discountPrice ?? item.product.price) * item.quantity).toFixed(2)}</span>
-                    </div>
-                  ))}
+                  {items.map(item => {
+                    const price = item.variant ? (item.variant.discountPrice ?? item.variant.price) : (item.product.discountPrice ?? item.product.price);
+                    return (
+                      <div key={item.id} className="flex justify-between text-sm">
+                        <span className="text-muted-foreground line-clamp-1 flex-1 mr-2">{item.product.name} × {item.quantity}</span>
+                        <span>${(price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    );
+                  })}
                 </div>
                 <Separator className="my-4" />
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>PKR {subtotal.toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
                   {couponDiscount > 0 && (
-                    <div className="flex justify-between text-primary"><span>Discount ({appliedCoupon})</span><span>-PKR {couponDiscount.toFixed(2)}</span></div>
+                    <div className="flex justify-between text-primary"><span>Discount ({appliedCoupon})</span><span>-${couponDiscount.toFixed(2)}</span></div>
                   )}
-                  <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shippingCost === 0 ? 'FREE' : `PKR ${shippingCost.toFixed(2)}`}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}</span></div>
                   <Separator />
-                  <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>PKR {total.toFixed(2)}</span></div>
+                  <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>${total.toFixed(2)}</span></div>
                 </div>
 
                 {!appliedCoupon && (
