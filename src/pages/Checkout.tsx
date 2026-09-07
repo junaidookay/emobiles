@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, MapPin, Truck, CreditCard, Check, Building2, Banknote, Copy } from 'lucide-react';
 
-const steps = ['Address', 'Shipping', 'Payment', 'Review'];
+const ALL_STEPS = ['Address', 'Shipping', 'Payment', 'Review'];
 const FREE_SHIPPING_THRESHOLD = 14000;
 
 const PAKISTAN_PROVINCES = [
@@ -57,6 +57,11 @@ const Checkout = () => {
   });
   const selectedShipping = availableShippingMethods?.find(s => s.id === shippingMethodId);
   const shippingCost = selectedShipping ? (subtotal >= 14000 && selectedShipping.price > 0 ? 0 : selectedShipping.price) : 0;
+  // For non-Lahore: skip shipping step entirely (auto-select Standard)
+  const skipShippingStep = !isLahore && availableShippingMethods?.length === 1;
+  const steps = skipShippingStep
+    ? ALL_STEPS.filter(s => s !== 'Shipping')
+    : ALL_STEPS;
 
   // Payment
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bank_transfer' | 'card'>('cod');
@@ -77,7 +82,11 @@ const Checkout = () => {
     if (shippingMethodId && availableShippingMethods && !availableShippingMethods.find(s => s.id === shippingMethodId)) {
       setShippingMethodId(availableShippingMethods[0]?.id || '');
     }
-  }, [availableShippingMethods, shippingMethodId]);
+    // Auto-select Standard for non-Lahore cities
+    if (skipShippingStep && availableShippingMethods?.length === 1) {
+      setShippingMethodId(availableShippingMethods[0].id);
+    }
+  }, [availableShippingMethods, shippingMethodId, skipShippingStep]);
 
   useEffect(() => {
     if (!user) navigate('/auth?redirect=/checkout');
@@ -295,14 +304,14 @@ const Checkout = () => {
                   </label>
 
                   <Button className="mt-6" onClick={() => setStep(1)} disabled={!canProceedAddress}>
-                    Continue to Shipping
+                    {skipShippingStep ? 'Continue to Payment' : 'Continue to Shipping'}
                   </Button>
                 </CardContent>
               </Card>
             )}
 
-            {/* Step 1: Shipping */}
-            {step === 1 && (
+            {/* Step 1: Shipping (only when not skipped) */}
+            {step === 1 && !skipShippingStep && (
               <Card className="border-0 shadow-card">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-6">
@@ -349,7 +358,7 @@ const Checkout = () => {
             )}
 
             {/* Step 2: Payment */}
-            {step === 2 && (
+            {((step === 2 && !skipShippingStep) || (step === 1 && skipShippingStep)) && (
               <Card className="border-0 shadow-card">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-6">
@@ -423,15 +432,15 @@ const Checkout = () => {
                   )}
 
                   <div className="flex gap-3 mt-6">
-                    <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
-                    <Button onClick={() => setStep(3)}>Review Order</Button>
+                    <Button variant="outline" onClick={() => setStep(skipShippingStep ? 0 : 1)}>Back</Button>
+                    <Button onClick={() => setStep(skipShippingStep ? 2 : 3)}>Review Order</Button>
                   </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Step 3: Review */}
-            {step === 3 && (
+            {((step === 3 && !skipShippingStep) || (step === 2 && skipShippingStep)) && (
               <div className="space-y-6">
                 <Card className="border-0 shadow-card">
                   <CardContent className="p-6">
@@ -492,7 +501,7 @@ const Checkout = () => {
                 </Card>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setStep(2)}>Back</Button>
+                  <Button variant="outline" onClick={() => setStep(skipShippingStep ? 1 : 2)}>Back</Button>
                   <Button className="flex-1" size="lg" onClick={handlePlaceOrder} disabled={placing}>
                     {placing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     {paymentMethod === 'cod' && `Place Order — PKR ${total.toFixed(2)}`}
