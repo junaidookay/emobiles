@@ -13,13 +13,12 @@ import Footer from '@/components/layout/Footer';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useShippingMethods, useAddresses } from '@/hooks/useProducts';
-import { useBankTransferSettings } from '@/hooks/useSiteSettings';
+import { useBankTransferSettings, useFreeShippingSettings } from '@/hooks/useSiteSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, MapPin, Truck, CreditCard, Check, Building2, Banknote, Copy } from 'lucide-react';
 
 const ALL_STEPS = ['Address', 'Shipping', 'Payment', 'Review'];
-const FREE_SHIPPING_THRESHOLD = 14000;
 
 const PAKISTAN_PROVINCES = [
   'Punjab',
@@ -36,6 +35,7 @@ const Checkout = () => {
   const { data: shippingMethods } = useShippingMethods();
   const { data: savedAddresses } = useAddresses();
   const { data: bankDetails } = useBankTransferSettings();
+  const { data: freeShipping } = useFreeShippingSettings();
 
   const [step, setStep] = useState(0);
   const [placing, setPlacing] = useState(false);
@@ -61,7 +61,9 @@ const Checkout = () => {
     });
   })();
   const selectedShipping = availableShippingMethods?.find(s => s.id === shippingMethodId);
-  const shippingCost = selectedShipping ? (subtotal >= 14000 && selectedShipping.price > 0 ? 0 : selectedShipping.price) : 0;
+  const freeShippingEnabled = freeShipping?.enabled !== false;
+  const freeShippingThreshold = freeShipping?.threshold ?? 14000;
+  const shippingCost = selectedShipping ? (freeShippingEnabled && subtotal >= freeShippingThreshold && selectedShipping.price > 0 ? 0 : selectedShipping.price) : 0;
   // For non-Lahore: skip shipping step entirely (auto-select Standard)
   const skipShippingStep = !isLahore && availableShippingMethods?.length === 1;
   const steps = skipShippingStep
@@ -326,7 +328,7 @@ const Checkout = () => {
                   {availableShippingMethods && availableShippingMethods.length > 0 ? (
                     <RadioGroup value={shippingMethodId} onValueChange={setShippingMethodId} className="space-y-3">
                       {availableShippingMethods.map(method => {
-                        const isFree = subtotal >= 14000 && method.price > 0;
+                        const isFree = freeShippingEnabled && subtotal >= freeShippingThreshold && method.price > 0;
                         return (
                           <label key={method.id} className="flex items-center justify-between p-4 rounded-xl border cursor-pointer hover:bg-secondary/50 transition-colors">
                             <div className="flex items-center gap-3">
@@ -348,8 +350,8 @@ const Checkout = () => {
                   ) : (
                     <p className="text-sm text-muted-foreground">No shipping methods available.</p>
                   )}
-                  {subtotal < FREE_SHIPPING_THRESHOLD && (
-                    <p className="text-xs text-muted-foreground mt-3">Add PKR {(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2)} more to qualify for free shipping!</p>
+                  {freeShippingEnabled && subtotal < freeShippingThreshold && (
+                    <p className="text-xs text-muted-foreground mt-3">Add PKR {(freeShippingThreshold - subtotal).toFixed(2)} more to qualify for free shipping!</p>
                   )}
                   {!isLahore && (
                     <p className="text-xs text-muted-foreground mt-2">Same Day Delivery is available for Lahore only.</p>

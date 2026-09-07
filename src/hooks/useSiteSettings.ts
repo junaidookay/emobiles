@@ -64,6 +64,15 @@ export const defaultBankTransfer: BankTransferSettings = {
 
 export const useBankTransferSettings = () => useSiteSetting<BankTransferSettings>('bank_transfer', defaultBankTransfer);
 
+export interface FreeShippingSettings {
+  enabled: boolean;
+  threshold: number;
+}
+
+export const defaultFreeShipping: FreeShippingSettings = { enabled: true, threshold: 14000 };
+
+export const useFreeShippingSettings = () => useSiteSetting<FreeShippingSettings>('free_shipping', defaultFreeShipping);
+
 export const useUpdateSiteSetting = (key: string) => {
   const qc = useQueryClient();
   return useMutation({

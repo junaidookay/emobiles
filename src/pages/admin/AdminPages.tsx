@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { useCategories, useBrands, useAllBlogPosts, useCoupons } from '@/hooks/useProducts';
-import { useHeroSettings, useFaviconSettings, useUpdateSiteSetting, type HeroSettings } from '@/hooks/useSiteSettings';
+import { useHeroSettings, useFaviconSettings, useFreeShippingSettings, useUpdateSiteSetting, type HeroSettings } from '@/hooks/useSiteSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -570,11 +570,66 @@ const GeneralSettings = () => {
         <div className="border-t pt-5 space-y-4">
           <div><Label>Store Name</Label><Input className="mt-1" defaultValue="eMobiles" /></div>
           <div><Label>Support Email</Label><Input className="mt-1" defaultValue="support@emobiles.com" /></div>
-          <div><Label>Free Shipping Threshold (PKR)</Label><Input className="mt-1" type="number" defaultValue="14000" /></div>
-          <Button>Save Settings</Button>
         </div>
+
+        {/* Free Shipping Settings */}
+        <FreeShippingSettingsSection />
       </CardContent>
     </Card>
+  );
+};
+
+const FreeShippingSettingsSection = () => {
+  const { data: settings, isLoading } = useFreeShippingSettings();
+  const update = useUpdateSiteSetting('free_shipping');
+  const [enabled, setEnabled] = useState(true);
+  const [threshold, setThreshold] = useState('14000');
+
+  useEffect(() => {
+    if (settings) {
+      setEnabled(settings.enabled);
+      setThreshold(String(settings.threshold));
+    }
+  }, [settings]);
+
+  if (isLoading) return null;
+
+  const handleSave = async () => {
+    try {
+      await update.mutateAsync({ enabled, threshold: Number(threshold) });
+      toast.success('Free shipping settings updated');
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to save');
+    }
+  };
+
+  return (
+    <div className="border-t pt-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <Label className="text-base font-semibold">Free Shipping</Label>
+          <p className="text-sm text-muted-foreground mt-0.5">When enabled, orders above the threshold get free shipping.</p>
+        </div>
+        <Switch checked={enabled} onCheckedChange={setEnabled} />
+      </div>
+      {enabled && (
+        <div>
+          <Label>Threshold (PKR)</Label>
+          <Input
+            className="mt-1 max-w-[200px]"
+            type="number"
+            value={threshold}
+            onChange={e => setThreshold(e.target.value)}
+            min="0"
+          />
+          <p className="text-xs text-muted-foreground mt-1">Orders above this amount get free standard shipping.</p>
+        </div>
+      )}
+      <Button onClick={handleSave} disabled={update.isPending}>
+        {update.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+        Save Free Shipping Settings
+      </Button>
+    </div>
   );
 };
 

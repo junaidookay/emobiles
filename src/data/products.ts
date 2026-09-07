@@ -150,7 +150,6 @@ export const blogPosts: BlogPost[] = [
 export const shippingMethods: ShippingMethod[] = [
   { id: '1', name: 'Standard Shipping', description: 'Delivered in 3-5 business days', price: 800, estimatedDays: '3-5 days' },
   { id: '2', name: 'Same Day Delivery', description: 'Delivered today (Lahore only)', price: 1500, estimatedDays: 'Same day' },
-  { id: '3', name: 'Free Shipping', description: 'Free on orders over PKR 14000', price: 0, estimatedDays: '3-5 days' },
 ];
 
 export const coupons: Coupon[] = [
