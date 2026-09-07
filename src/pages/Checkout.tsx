@@ -50,11 +50,16 @@ const Checkout = () => {
   // Shipping
   const [shippingMethodId, setShippingMethodId] = useState('');
   const isLahore = addressForm.city.toLowerCase().trim() === 'lahore';
-  const availableShippingMethods = shippingMethods?.filter(m => {
-    // Same Day Delivery is Lahore-only
-    if (m.name.toLowerCase().includes('same day') && !isLahore) return false;
-    return true;
-  });
+  // Deduplicate by name, keep first of each, filter Same Day to Lahore only
+  const availableShippingMethods = (() => {
+    const seen = new Set<string>();
+    return shippingMethods?.filter(m => {
+      if (m.name.toLowerCase().includes('same day') && !isLahore) return false;
+      if (seen.has(m.name)) return false;
+      seen.add(m.name);
+      return true;
+    });
+  })();
   const selectedShipping = availableShippingMethods?.find(s => s.id === shippingMethodId);
   const shippingCost = selectedShipping ? (subtotal >= 14000 && selectedShipping.price > 0 ? 0 : selectedShipping.price) : 0;
   // For non-Lahore: skip shipping step entirely (auto-select Standard)
@@ -78,11 +83,11 @@ const Checkout = () => {
     if (availableShippingMethods?.length && !shippingMethodId) {
       setShippingMethodId(availableShippingMethods[0].id);
     }
-    // If current selection is Same Day but city is no longer Lahore, switch to first available
+    // If current selection is not in available list (e.g. was Same Day, now city changed), reset
     if (shippingMethodId && availableShippingMethods && !availableShippingMethods.find(s => s.id === shippingMethodId)) {
       setShippingMethodId(availableShippingMethods[0]?.id || '');
     }
-    // Auto-select Standard for non-Lahore cities
+    // Auto-select Standard when skipping shipping step
     if (skipShippingStep && availableShippingMethods?.length === 1) {
       setShippingMethodId(availableShippingMethods[0].id);
     }

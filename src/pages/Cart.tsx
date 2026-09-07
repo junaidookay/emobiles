@@ -13,8 +13,6 @@ import { useState } from 'react';
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, subtotal } = useCart();
   const [couponCode, setCouponCode] = useState('');
-  const shipping = subtotal >= 14000 ? 0 : 800;
-  const total = subtotal + shipping;
 
   if (items.length === 0) {
     return (
@@ -85,9 +83,8 @@ const Cart = () => {
                 <h3 className="font-display font-semibold text-lg mb-4">Order Summary</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>PKR {subtotal.toFixed(2)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? 'FREE' : `PKR ${shipping.toFixed(2)}`}</span></div>
                   <Separator />
-                  <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>PKR {total.toFixed(2)}</span></div>
+                  <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>PKR {subtotal.toFixed(2)}</span></div>
                 </div>
                 <div className="flex gap-2 mt-4">
                   <Input placeholder="Coupon code" value={couponCode} onChange={e => setCouponCode(e.target.value)} className="h-9" />
