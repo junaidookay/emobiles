@@ -41,6 +41,7 @@ Deno.serve(async (req) => {
     const shippingAddressId: string | null = body.shipping_address_id ?? null;
     const shippingMethodId: string | null = body.shipping_method_id ?? null;
     const couponCodeRaw: string | null = body.coupon_code ?? null;
+    const paymentMethod: string = ['cod', 'bank_transfer', 'card'].includes(body.payment_method) ? body.payment_method : 'cod';
 
     if (items.length === 0) return json({ error: 'Cart is empty' }, 400);
     if (!shippingAddressId) return json({ error: 'Shipping address required' }, 400);
@@ -183,6 +184,7 @@ Deno.serve(async (req) => {
         shipping_address_id: shippingAddressId,
         shipping_method_id: shippingMethodId,
         coupon_code: acceptedCoupon,
+        payment_method: paymentMethod,
       })
       .select()
       .single();

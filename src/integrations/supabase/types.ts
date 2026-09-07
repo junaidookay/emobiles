@@ -313,6 +313,8 @@ export type Database = {
           created_at: string
           discount: number
           id: string
+          payment_details: Json | null
+          payment_method: string | null
           shipping_address_id: string | null
           shipping_cost: number
           shipping_method_id: string | null
@@ -329,6 +331,8 @@ export type Database = {
           created_at?: string
           discount?: number
           id?: string
+          payment_details?: Json | null
+          payment_method?: string | null
           shipping_address_id?: string | null
           shipping_cost?: number
           shipping_method_id?: string | null
@@ -345,6 +349,8 @@ export type Database = {
           created_at?: string
           discount?: number
           id?: string
+          payment_details?: Json | null
+          payment_method?: string | null
           shipping_address_id?: string | null
           shipping_cost?: number
           shipping_method_id?: string | null

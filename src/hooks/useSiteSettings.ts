@@ -44,6 +44,26 @@ export const defaultFavicon: FaviconSettings = { url: '' };
 
 export const useFaviconSettings = () => useSiteSetting<FaviconSettings>('favicon', defaultFavicon);
 
+export interface BankTransferSettings {
+  bank_name: string;
+  account_title: string;
+  account_number: string;
+  iban: string;
+  branch_code: string;
+  instructions: string;
+}
+
+export const defaultBankTransfer: BankTransferSettings = {
+  bank_name: 'Habib Bank Limited (HBL)',
+  account_title: 'eMobiles (Pvt) Ltd',
+  account_number: '1234-5678-9012-3',
+  iban: 'PK36SCBL0000001234567890',
+  branch_code: '0123',
+  instructions: 'Please transfer the exact order amount and send screenshot of receipt to our WhatsApp or email for order confirmation.',
+};
+
+export const useBankTransferSettings = () => useSiteSetting<BankTransferSettings>('bank_transfer', defaultBankTransfer);
+
 export const useUpdateSiteSetting = (key: string) => {
   const qc = useQueryClient();
   return useMutation({

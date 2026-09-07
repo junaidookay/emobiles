@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, Eye } from 'lucide-react';
+import { Loader2, Eye, Banknote, Building2, CreditCard } from 'lucide-react';
 import { useOrders } from '@/hooks/useProducts';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -19,6 +19,12 @@ const statusColors: Record<string, string> = {
   shipped: 'bg-warning/10 text-warning',
   delivered: 'bg-success/10 text-success',
   cancelled: 'bg-destructive/10 text-destructive',
+};
+
+const paymentMethodLabels: Record<string, { label: string; icon: any }> = {
+  cod: { label: 'COD', icon: Banknote },
+  bank_transfer: { label: 'Bank Transfer', icon: Building2 },
+  card: { label: 'Card', icon: CreditCard },
 };
 
 const AdminOrders = () => {
@@ -55,6 +61,7 @@ const AdminOrders = () => {
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Order</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Items</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Total</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Payment</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
                   <th className="text-left py-3 px-4 font-medium text-muted-foreground">Date</th>
                   <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
@@ -66,6 +73,13 @@ const AdminOrders = () => {
                     <td className="py-3 px-4 font-medium">#{order.id.slice(0, 8)}</td>
                     <td className="py-3 px-4 text-muted-foreground">{(order as any).order_items?.length || 0}</td>
                     <td className="py-3 px-4 font-medium">PKR {order.total}</td>
+                    <td className="py-3 px-4">
+                      {(() => {
+                        const pm = paymentMethodLabels[(order as any).payment_method || 'cod'];
+                        const Icon = pm?.icon || Banknote;
+                        return <span className="flex items-center gap-1 text-xs"><Icon className="h-3 w-3" />{pm?.label || 'COD'}</span>;
+                      })()}
+                    </td>
                     <td className="py-3 px-4">
                       <Badge className={`text-xs ${statusColors[order.status] || ''}`}>{order.status}</Badge>
                     </td>
@@ -101,6 +115,7 @@ const AdminOrders = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><span className="text-muted-foreground">Status:</span> <Badge className={statusColors[selectedOrder.status]}>{selectedOrder.status}</Badge></div>
+                <div><span className="text-muted-foreground">Payment:</span> <Badge variant="outline">{paymentMethodLabels[selectedOrder.payment_method || 'cod']?.label || 'COD'}</Badge></div>
                 <div><span className="text-muted-foreground">Date:</span> {new Date(selectedOrder.created_at).toLocaleDateString()}</div>
                 <div><span className="text-muted-foreground">Subtotal:</span> PKR {selectedOrder.subtotal}</div>
                 <div><span className="text-muted-foreground">Shipping:</span> PKR {selectedOrder.shipping_cost}</div>

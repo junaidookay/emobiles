@@ -13,12 +13,21 @@ import Footer from '@/components/layout/Footer';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useShippingMethods, useAddresses } from '@/hooks/useProducts';
+import { useBankTransferSettings } from '@/hooks/useSiteSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, MapPin, Truck, CreditCard, Check } from 'lucide-react';
+import { Loader2, MapPin, Truck, CreditCard, Check, Building2, Banknote, Copy } from 'lucide-react';
 
-const steps = ['Address', 'Shipping', 'Review & Pay'];
+const steps = ['Address', 'Shipping', 'Payment', 'Review'];
 const FREE_SHIPPING_THRESHOLD = 14000;
+
+const PAKISTAN_PROVINCES = [
+  'Punjab',
+  'Sindh',
+  'Khyber Pakhtunkhwa',
+  'Balochistan',
+  'Islamabad Capital Territory',
+];
 
 const Checkout = () => {
   const { items, subtotal, clearCart } = useCart();
@@ -26,13 +35,14 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { data: shippingMethods } = useShippingMethods();
   const { data: savedAddresses } = useAddresses();
+  const { data: bankDetails } = useBankTransferSettings();
 
   const [step, setStep] = useState(0);
   const [placing, setPlacing] = useState(false);
 
   // Address form
   const [addressForm, setAddressForm] = useState({
-    name: '', phone: '', street: '', city: '', state: '', zip: '', country: 'US',
+    name: '', phone: '', street: '', city: '', province: '', zip: '', country: 'PK',
   });
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [saveAddress, setSaveAddress] = useState(true);
@@ -41,6 +51,9 @@ const Checkout = () => {
   const [shippingMethodId, setShippingMethodId] = useState('');
   const selectedShipping = shippingMethods?.find(s => s.id === shippingMethodId);
   const shippingCost = selectedShipping ? (subtotal >= 14000 && selectedShipping.price > 0 ? 0 : selectedShipping.price) : 0;
+
+  // Payment
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bank_transfer' | 'card'>('cod');
 
   // Coupon
   const [couponCode, setCouponCode] = useState('');
@@ -66,7 +79,7 @@ const Checkout = () => {
     if (addr) {
       setAddressForm({
         name: addr.name, phone: addr.phone || '', street: addr.street,
-        city: addr.city, state: addr.state || '', zip: addr.zip, country: addr.country,
+        city: addr.city, province: addr.state || '', zip: addr.zip, country: addr.country,
       });
     }
   };
@@ -81,29 +94,10 @@ const Checkout = () => {
       .eq('is_active', true)
       .maybeSingle();
 
-    if (!coupon) {
-      toast.error('Invalid or expired coupon');
-      setApplyingCoupon(false);
-      return;
-    }
-
-    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-      toast.error('Coupon has expired');
-      setApplyingCoupon(false);
-      return;
-    }
-
-    if (coupon.min_order_amount && subtotal < Number(coupon.min_order_amount)) {
-      toast.error(`Minimum order amount is PKR ${coupon.min_order_amount}`);
-      setApplyingCoupon(false);
-      return;
-    }
-
-    if (coupon.max_uses && coupon.used_count && coupon.used_count >= coupon.max_uses) {
-      toast.error('Coupon usage limit reached');
-      setApplyingCoupon(false);
-      return;
-    }
+    if (!coupon) { toast.error('Invalid or expired coupon'); setApplyingCoupon(false); return; }
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) { toast.error('Coupon has expired'); setApplyingCoupon(false); return; }
+    if (coupon.min_order_amount && subtotal < Number(coupon.min_order_amount)) { toast.error(`Minimum order amount is PKR ${coupon.min_order_amount}`); setApplyingCoupon(false); return; }
+    if (coupon.max_uses && coupon.used_count && coupon.used_count >= coupon.max_uses) { toast.error('Coupon usage limit reached'); setApplyingCoupon(false); return; }
 
     const discount = coupon.discount_type === 'percentage'
       ? subtotal * (Number(coupon.discount_value) / 100)
@@ -120,7 +114,6 @@ const Checkout = () => {
     setPlacing(true);
 
     try {
-      // Save address if needed
       let addressId = selectedAddressId;
       if (saveAddress && !selectedAddressId) {
         const { data: newAddr, error: addrErr } = await supabase
@@ -131,9 +124,9 @@ const Checkout = () => {
             phone: addressForm.phone,
             street: addressForm.street,
             city: addressForm.city,
-            state: addressForm.state,
+            state: addressForm.province,
             zip: addressForm.zip,
-            country: addressForm.country,
+            country: 'PK',
             is_default: !savedAddresses?.length,
           })
           .select()
@@ -144,7 +137,6 @@ const Checkout = () => {
 
       if (!addressId) throw new Error('Shipping address required');
 
-      // Create order server-side (authoritative pricing, no client-controlled totals)
       const { data: orderResp, error: placeErr } = await supabase.functions.invoke('place-order', {
         body: {
           items: items.map((item) => ({
@@ -155,6 +147,7 @@ const Checkout = () => {
           shipping_address_id: addressId,
           shipping_method_id: shippingMethodId || null,
           coupon_code: appliedCoupon,
+          payment_method: paymentMethod,
         },
       });
       if (placeErr || !orderResp?.order_id) {
@@ -162,35 +155,36 @@ const Checkout = () => {
       }
       const orderId: string = orderResp.order_id;
 
-      // Try Stripe checkout
-      try {
-        const { data: stripeData, error: stripeError } = await supabase.functions.invoke('create-checkout', {
-          body: {
-            orderId,
-            successUrl: `${window.location.origin}/order-success?order=${orderId}`,
-            cancelUrl: `${window.location.origin}/checkout`,
-          },
-        });
+      // Only invoke Stripe for card payments
+      if (paymentMethod === 'card') {
+        try {
+          const { data: stripeData, error: stripeError } = await supabase.functions.invoke('create-checkout', {
+            body: {
+              orderId,
+              successUrl: `${window.location.origin}/order-success?order=${orderId}`,
+              cancelUrl: `${window.location.origin}/checkout`,
+            },
+          });
 
-        if (!stripeError && stripeData?.url) {
-          await clearCart();
-          window.location.href = stripeData.url;
-          return;
+          if (!stripeError && stripeData?.url) {
+            await clearCart();
+            window.location.href = stripeData.url;
+            return;
+          }
+        } catch {
+          console.log('Stripe not configured');
         }
-      } catch {
-        console.log('Stripe not configured, placing order directly');
       }
 
-      // Fallback: order was created server-side with verified totals; leave as pending
+      // COD or Bank Transfer (or Stripe fallback)
       await clearCart();
       toast.success('Order placed successfully!');
-      navigate('/order-success?order=' + orderId);
+      navigate('/order-success?order=' + orderId + '&payment=' + paymentMethod);
     } catch (err: any) {
       toast.error(err.message || 'Failed to place order');
     }
     setPlacing(false);
   };
-
 
   if (items.length === 0) {
     return (
@@ -205,8 +199,13 @@ const Checkout = () => {
     );
   }
 
-  const canProceedAddress = addressForm.name && addressForm.street && addressForm.city && addressForm.zip;
+  const canProceedAddress = addressForm.name && addressForm.street && addressForm.city && addressForm.zip && addressForm.province;
   const canProceedShipping = !!shippingMethodId;
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard');
+  };
 
   return (
     <div className="min-h-screen">
@@ -251,7 +250,7 @@ const Checkout = () => {
                         <SelectContent>
                           {savedAddresses.map(a => (
                             <SelectItem key={a.id} value={a.id}>
-                              {a.name} — {a.street}, {a.city} {a.zip}
+                              {a.name} — {a.street}, {a.city}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -261,13 +260,23 @@ const Checkout = () => {
                   )}
 
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div><Label>Full Name</Label><Input className="mt-1" value={addressForm.name} onChange={e => setAddressForm(p => ({ ...p, name: e.target.value }))} /></div>
-                    <div><Label>Phone</Label><Input className="mt-1" value={addressForm.phone} onChange={e => setAddressForm(p => ({ ...p, phone: e.target.value }))} /></div>
-                    <div className="sm:col-span-2"><Label>Street Address</Label><Input className="mt-1" value={addressForm.street} onChange={e => setAddressForm(p => ({ ...p, street: e.target.value }))} /></div>
-                    <div><Label>City</Label><Input className="mt-1" value={addressForm.city} onChange={e => setAddressForm(p => ({ ...p, city: e.target.value }))} /></div>
-                    <div><Label>State</Label><Input className="mt-1" value={addressForm.state} onChange={e => setAddressForm(p => ({ ...p, state: e.target.value }))} /></div>
-                    <div><Label>ZIP Code</Label><Input className="mt-1" value={addressForm.zip} onChange={e => setAddressForm(p => ({ ...p, zip: e.target.value }))} /></div>
-                    <div><Label>Country</Label><Input className="mt-1" value={addressForm.country} onChange={e => setAddressForm(p => ({ ...p, country: e.target.value }))} /></div>
+                    <div><Label>Full Name *</Label><Input className="mt-1" value={addressForm.name} onChange={e => setAddressForm(p => ({ ...p, name: e.target.value }))} /></div>
+                    <div><Label>Phone Number *</Label><Input className="mt-1" type="tel" placeholder="03XX-XXXXXXX" value={addressForm.phone} onChange={e => setAddressForm(p => ({ ...p, phone: e.target.value }))} /></div>
+                    <div className="sm:col-span-2"><Label>Street Address *</Label><Input className="mt-1" placeholder="House #, Street, Area" value={addressForm.street} onChange={e => setAddressForm(p => ({ ...p, street: e.target.value }))} /></div>
+                    <div><Label>City *</Label><Input className="mt-1" value={addressForm.city} onChange={e => setAddressForm(p => ({ ...p, city: e.target.value }))} /></div>
+                    <div>
+                      <Label>Province *</Label>
+                      <Select value={addressForm.province} onValueChange={v => setAddressForm(p => ({ ...p, province: v }))}>
+                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select province" /></SelectTrigger>
+                        <SelectContent>
+                          {PAKISTAN_PROVINCES.map(p => (
+                            <SelectItem key={p} value={p}>{p}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div><Label>Postal Code *</Label><Input className="mt-1" placeholder="54000" value={addressForm.zip} onChange={e => setAddressForm(p => ({ ...p, zip: e.target.value }))} /></div>
+                    <div><Label>Country</Label><Input className="mt-1" value="Pakistan" disabled /></div>
                   </div>
 
                   <label className="flex items-center gap-2 mt-4 text-sm">
@@ -316,23 +325,105 @@ const Checkout = () => {
                     <p className="text-sm text-muted-foreground">No shipping methods available.</p>
                   )}
                   {subtotal < FREE_SHIPPING_THRESHOLD && (
-                    <p className="text-xs text-muted-foreground mt-3">💡 Add PKR {(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2)} more to qualify for free shipping!</p>
+                    <p className="text-xs text-muted-foreground mt-3">Add PKR {(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2)} more to qualify for free shipping!</p>
                   )}
                   <div className="flex gap-3 mt-6">
                     <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
-                    <Button onClick={() => setStep(2)} disabled={!canProceedShipping}>Continue to Review</Button>
+                    <Button onClick={() => setStep(2)} disabled={!canProceedShipping}>Continue to Payment</Button>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Step 2: Review & Pay */}
+            {/* Step 2: Payment */}
             {step === 2 && (
+              <Card className="border-0 shadow-card">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-6">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    <h3 className="font-display font-semibold text-lg">Payment Method</h3>
+                  </div>
+
+                  <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as typeof paymentMethod)} className="space-y-3">
+                    {/* Cash on Delivery */}
+                    <label className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'cod' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}>
+                      <RadioGroupItem value="cod" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Banknote className="h-4 w-4 text-primary" />
+                          <p className="font-medium text-sm">Cash on Delivery</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Pay with cash when your order is delivered. Available across Pakistan.</p>
+                      </div>
+                    </label>
+
+                    {/* Bank Transfer */}
+                    <label className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'bank_transfer' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}>
+                      <RadioGroupItem value="bank_transfer" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-primary" />
+                          <p className="font-medium text-sm">Bank Transfer</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Transfer the order amount to our bank account. Order will be processed after payment confirmation.</p>
+                      </div>
+                    </label>
+
+                    {/* Card (Stripe) - Coming Soon */}
+                    <label className="flex items-start gap-4 p-4 rounded-xl border opacity-50 cursor-not-allowed">
+                      <RadioGroupItem value="card" disabled />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          <p className="font-medium text-sm">Online Payment (Card)</p>
+                          <Badge variant="secondary" className="text-[10px]">Coming Soon</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Pay securely with credit/debit card via Stripe.</p>
+                      </div>
+                    </label>
+                  </RadioGroup>
+
+                  {/* Bank Transfer Details */}
+                  {paymentMethod === 'bank_transfer' && bankDetails && (
+                    <div className="mt-6 p-4 rounded-xl bg-secondary/50 border space-y-3">
+                      <h4 className="font-display font-semibold text-sm">Bank Account Details</h4>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-muted-foreground text-xs">Bank Name</p>
+                          <p className="font-medium flex items-center gap-1">{bankDetails.bank_name} <Copy className="h-3 w-3 cursor-pointer text-muted-foreground" onClick={() => copyToClipboard(bankDetails.bank_name)} /></p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">Account Title</p>
+                          <p className="font-medium flex items-center gap-1">{bankDetails.account_title} <Copy className="h-3 w-3 cursor-pointer text-muted-foreground" onClick={() => copyToClipboard(bankDetails.account_title)} /></p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">Account Number</p>
+                          <p className="font-medium flex items-center gap-1 font-mono">{bankDetails.account_number} <Copy className="h-3 w-3 cursor-pointer text-muted-foreground" onClick={() => copyToClipboard(bankDetails.account_number)} /></p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">IBAN</p>
+                          <p className="font-medium flex items-center gap-1 font-mono text-xs">{bankDetails.iban} <Copy className="h-3 w-3 cursor-pointer text-muted-foreground" onClick={() => copyToClipboard(bankDetails.iban)} /></p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2 pt-2 border-t">{bankDetails.instructions}</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 mt-6">
+                    <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+                    <Button onClick={() => setStep(3)}>Review Order</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 3: Review */}
+            {step === 3 && (
               <div className="space-y-6">
                 <Card className="border-0 shadow-card">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <CreditCard className="h-5 w-5 text-primary" />
+                      <Check className="h-5 w-5 text-primary" />
                       <h3 className="font-display font-semibold text-lg">Review & Place Order</h3>
                     </div>
 
@@ -340,8 +431,9 @@ const Checkout = () => {
                       <div>
                         <p className="text-sm font-medium mb-1">Shipping to:</p>
                         <p className="text-sm text-muted-foreground">
-                          {addressForm.name} • {addressForm.street}, {addressForm.city}, {addressForm.state} {addressForm.zip}
+                          {addressForm.name} • {addressForm.street}, {addressForm.city}, {addressForm.province} {addressForm.zip}
                         </p>
+                        <p className="text-xs text-muted-foreground">Pakistan • {addressForm.phone}</p>
                       </div>
                       <Separator />
                       <div>
@@ -349,6 +441,15 @@ const Checkout = () => {
                         <p className="text-sm text-muted-foreground">
                           {selectedShipping?.name} — {shippingCost === 0 ? 'FREE' : `PKR ${shippingCost}`}
                         </p>
+                      </div>
+                      <Separator />
+                      <div>
+                        <p className="text-sm font-medium mb-1">Payment method:</p>
+                        <div className="flex items-center gap-2">
+                          {paymentMethod === 'cod' && <><Banknote className="h-4 w-4" /><span className="text-sm">Cash on Delivery</span></>}
+                          {paymentMethod === 'bank_transfer' && <><Building2 className="h-4 w-4" /><span className="text-sm">Bank Transfer</span></>}
+                          {paymentMethod === 'card' && <><CreditCard className="h-4 w-4" /><span className="text-sm">Online Payment (Card)</span></>}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -378,10 +479,12 @@ const Checkout = () => {
                 </Card>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
+                  <Button variant="outline" onClick={() => setStep(2)}>Back</Button>
                   <Button className="flex-1" size="lg" onClick={handlePlaceOrder} disabled={placing}>
                     {placing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Place Order — PKR {total.toFixed(2)}
+                    {paymentMethod === 'cod' && `Place Order — PKR ${total.toFixed(2)}`}
+                    {paymentMethod === 'bank_transfer' && `Confirm & Place Order — PKR ${total.toFixed(2)}`}
+                    {paymentMethod === 'card' && `Pay with Card — PKR ${total.toFixed(2)}`}
                   </Button>
                 </div>
               </div>
