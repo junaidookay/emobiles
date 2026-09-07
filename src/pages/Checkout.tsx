@@ -540,7 +540,9 @@ const Checkout = () => {
                   {couponDiscount > 0 && (
                     <div className="flex justify-between text-primary"><span>Discount ({appliedCoupon})</span><span>-PKR {couponDiscount.toFixed(2)}</span></div>
                   )}
-                  <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shippingCost === 0 ? 'FREE' : `PKR ${shippingCost.toFixed(2)}`}</span></div>
+                  {step > 0 && (
+                    <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shippingCost === 0 ? 'FREE' : `PKR ${shippingCost.toFixed(2)}`}</span></div>
+                  )}
                   <Separator />
                   <div className="flex justify-between font-display font-bold text-lg"><span>Total</span><span>PKR {total.toFixed(2)}</span></div>
                 </div>
