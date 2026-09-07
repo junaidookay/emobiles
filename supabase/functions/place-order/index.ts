@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
         .eq('id', shippingMethodId)
         .maybeSingle();
       if (!shipping || !shipping.is_active) return json({ error: 'Invalid shipping method' }, 400);
-      shippingCost = subtotal >= 50 && Number(shipping.price) > 0 ? 0 : Number(shipping.price);
+      shippingCost = subtotal >= 14000 && Number(shipping.price) > 0 ? 0 : Number(shipping.price);
     }
 
     // Coupon

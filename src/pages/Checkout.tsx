@@ -40,7 +40,7 @@ const Checkout = () => {
   // Shipping
   const [shippingMethodId, setShippingMethodId] = useState('');
   const selectedShipping = shippingMethods?.find(s => s.id === shippingMethodId);
-  const shippingCost = selectedShipping ? (subtotal >= 50 && selectedShipping.price > 0 ? 0 : selectedShipping.price) : 0;
+  const shippingCost = selectedShipping ? (subtotal >= 14000 && selectedShipping.price > 0 ? 0 : selectedShipping.price) : 0;
 
   // Coupon
   const [couponCode, setCouponCode] = useState('');
@@ -293,7 +293,7 @@ const Checkout = () => {
                   {shippingMethods && shippingMethods.length > 0 ? (
                     <RadioGroup value={shippingMethodId} onValueChange={setShippingMethodId} className="space-y-3">
                       {shippingMethods.map(method => {
-                        const isFree = subtotal >= 50 && method.price > 0;
+                        const isFree = subtotal >= 14000 && method.price > 0;
                         return (
                           <label key={method.id} className="flex items-center justify-between p-4 rounded-xl border cursor-pointer hover:bg-secondary/50 transition-colors">
                             <div className="flex items-center gap-3">

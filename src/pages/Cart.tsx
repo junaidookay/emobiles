@@ -13,7 +13,7 @@ import { useState } from 'react';
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, subtotal } = useCart();
   const [couponCode, setCouponCode] = useState('');
-  const shipping = subtotal >= 50 ? 0 : 5.99;
+  const shipping = subtotal >= 14000 ? 0 : 1670;
   const total = subtotal + shipping;
 
   if (items.length === 0) {
