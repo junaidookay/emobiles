@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { useFaviconSettings } from "@/hooks/useSiteSettings";
 
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
@@ -36,6 +38,22 @@ import { AdminCategories, AdminBrands, AdminCustomers, AdminBlog, AdminCoupons, 
 
 const queryClient = new QueryClient();
 
+const FaviconUpdater = () => {
+  const { data } = useFaviconSettings();
+  useEffect(() => {
+    if (data?.url) {
+      let link = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = data.url;
+    }
+  }, [data?.url]);
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -45,6 +63,7 @@ const App = () => (
             <WishlistProvider>
               <Toaster />
               <Sonner />
+              <FaviconUpdater />
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />

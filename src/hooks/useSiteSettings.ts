@@ -36,6 +36,14 @@ export const useSiteSetting = <T = any>(key: string, fallback: T) => {
 
 export const useHeroSettings = () => useSiteSetting<HeroSettings>('hero', defaultHero);
 
+export interface FaviconSettings {
+  url: string;
+}
+
+export const defaultFavicon: FaviconSettings = { url: '' };
+
+export const useFaviconSettings = () => useSiteSetting<FaviconSettings>('favicon', defaultFavicon);
+
 export const useUpdateSiteSetting = (key: string) => {
   const qc = useQueryClient();
   return useMutation({

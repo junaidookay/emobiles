@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { useCategories, useBrands, useAllBlogPosts, useCoupons } from '@/hooks/useProducts';
-import { useHeroSettings, useUpdateSiteSetting, type HeroSettings } from '@/hooks/useSiteSettings';
+import { useHeroSettings, useFaviconSettings, useUpdateSiteSetting, type HeroSettings } from '@/hooks/useSiteSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -432,6 +432,8 @@ export const AdminCoupons = () => {
 };
 
 // ========== SETTINGS ==========
+const DEFAULT_FAVICON_SVG = '/favicon.svg';
+
 export const AdminSettings = () => {
   const [activeTab, setActiveTab] = useState('general');
 
@@ -444,16 +446,7 @@ export const AdminSettings = () => {
         ))}
       </div>
 
-      {activeTab === 'general' && (
-        <Card className="border-0 shadow-card">
-          <CardContent className="p-6 space-y-4">
-            <div><Label>Store Name</Label><Input className="mt-1" defaultValue="eMobiles" /></div>
-            <div><Label>Support Email</Label><Input className="mt-1" defaultValue="support@emobiles.com" /></div>
-              <div><Label>Free Shipping Threshold (PKR)</Label><Input className="mt-1" type="number" defaultValue="14000" /></div>
-            <Button>Save Settings</Button>
-          </CardContent>
-        </Card>
-      )}
+      {activeTab === 'general' && <GeneralSettings />}
 
       {activeTab === 'homepage' && <HeroSettingsEditor />}
 
@@ -479,6 +472,109 @@ export const AdminSettings = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const GeneralSettings = () => {
+  const { data: faviconData } = useFaviconSettings();
+  const updateFavicon = useUpdateSiteSetting('favicon');
+  const [uploading, setUploading] = useState(false);
+  const [faviconUrl, setFaviconUrl] = useState(faviconData?.url || '');
+
+  useEffect(() => { if (faviconData) setFaviconUrl(faviconData.url || ''); }, [faviconData]);
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    const ext = file.name.split('.').pop() || 'ico';
+    const path = `favicon/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: true });
+    if (error) { toast.error(`Upload failed: ${error.message}`); setUploading(false); return; }
+    const url = supabase.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+    setFaviconUrl(url);
+    setUploading(false);
+  };
+
+  const saveFavicon = async () => {
+    try {
+      await updateFavicon.mutateAsync({ url: faviconUrl });
+      // Update the live favicon immediately
+      const link = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      if (link) link.href = faviconUrl || DEFAULT_FAVICON_SVG;
+      toast.success('Favicon updated');
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to save favicon');
+    }
+  };
+
+  const removeFavicon = async () => {
+    setFaviconUrl('');
+    try {
+      await updateFavicon.mutateAsync({ url: '' });
+      const link = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      if (link) link.href = DEFAULT_FAVICON_SVG;
+      toast.success('Favicon removed — using default');
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to remove favicon');
+    }
+  };
+
+  return (
+    <Card className="border-0 shadow-card">
+      <CardContent className="p-6 space-y-6">
+        {/* Favicon Section */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-display font-semibold text-lg">Favicon</h3>
+            <p className="text-sm text-muted-foreground mt-1">The icon shown in the browser tab. Accepts SVG, PNG, ICO, JPG.</p>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-lg border bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+              {faviconUrl ? (
+                <img src={faviconUrl} alt="Favicon" className="w-full h-full object-contain" />
+              ) : (
+                <img src={DEFAULT_FAVICON_SVG} alt="Default favicon" className="w-full h-full object-contain" />
+              )}
+            </div>
+            <div className="flex-1 space-y-2">
+              <Input
+                value={faviconUrl}
+                onChange={e => setFaviconUrl(e.target.value)}
+                placeholder="Paste image URL or upload below"
+              />
+              <div className="flex gap-2">
+                <label className="inline-flex items-center gap-2 px-3 py-2 rounded-md border cursor-pointer text-sm hover:bg-secondary">
+                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  Upload
+                  <input
+                    type="file"
+                    accept=".svg,.png,.ico,.jpg,.jpeg,image/*"
+                    className="hidden"
+                    onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0])}
+                  />
+                </label>
+                {faviconUrl && (
+                  <Button variant="ghost" size="sm" onClick={removeFavicon}>
+                    Remove
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+          <Button onClick={saveFavicon} disabled={updateFavicon.isPending}>
+            {updateFavicon.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            Save Favicon
+          </Button>
+        </div>
+
+        {/* Existing fields */}
+        <div className="border-t pt-5 space-y-4">
+          <div><Label>Store Name</Label><Input className="mt-1" defaultValue="eMobiles" /></div>
+          <div><Label>Support Email</Label><Input className="mt-1" defaultValue="support@emobiles.com" /></div>
+          <div><Label>Free Shipping Threshold (PKR)</Label><Input className="mt-1" type="number" defaultValue="14000" /></div>
+          <Button>Save Settings</Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
