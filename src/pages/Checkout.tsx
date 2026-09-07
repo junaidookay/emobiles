@@ -49,7 +49,13 @@ const Checkout = () => {
 
   // Shipping
   const [shippingMethodId, setShippingMethodId] = useState('');
-  const selectedShipping = shippingMethods?.find(s => s.id === shippingMethodId);
+  const isLahore = addressForm.city.toLowerCase().trim() === 'lahore';
+  const availableShippingMethods = shippingMethods?.filter(m => {
+    // Same Day Delivery is Lahore-only
+    if (m.name.toLowerCase().includes('same day') && !isLahore) return false;
+    return true;
+  });
+  const selectedShipping = availableShippingMethods?.find(s => s.id === shippingMethodId);
   const shippingCost = selectedShipping ? (subtotal >= 14000 && selectedShipping.price > 0 ? 0 : selectedShipping.price) : 0;
 
   // Payment
@@ -64,10 +70,14 @@ const Checkout = () => {
   const total = subtotal - couponDiscount + shippingCost;
 
   useEffect(() => {
-    if (shippingMethods?.length && !shippingMethodId) {
-      setShippingMethodId(shippingMethods[0].id);
+    if (availableShippingMethods?.length && !shippingMethodId) {
+      setShippingMethodId(availableShippingMethods[0].id);
     }
-  }, [shippingMethods, shippingMethodId]);
+    // If current selection is Same Day but city is no longer Lahore, switch to first available
+    if (shippingMethodId && availableShippingMethods && !availableShippingMethods.find(s => s.id === shippingMethodId)) {
+      setShippingMethodId(availableShippingMethods[0]?.id || '');
+    }
+  }, [availableShippingMethods, shippingMethodId]);
 
   useEffect(() => {
     if (!user) navigate('/auth?redirect=/checkout');
@@ -299,9 +309,9 @@ const Checkout = () => {
                     <Truck className="h-5 w-5 text-primary" />
                     <h3 className="font-display font-semibold text-lg">Shipping Method</h3>
                   </div>
-                  {shippingMethods && shippingMethods.length > 0 ? (
+                  {availableShippingMethods && availableShippingMethods.length > 0 ? (
                     <RadioGroup value={shippingMethodId} onValueChange={setShippingMethodId} className="space-y-3">
-                      {shippingMethods.map(method => {
+                      {availableShippingMethods.map(method => {
                         const isFree = subtotal >= 14000 && method.price > 0;
                         return (
                           <label key={method.id} className="flex items-center justify-between p-4 rounded-xl border cursor-pointer hover:bg-secondary/50 transition-colors">
@@ -326,6 +336,9 @@ const Checkout = () => {
                   )}
                   {subtotal < FREE_SHIPPING_THRESHOLD && (
                     <p className="text-xs text-muted-foreground mt-3">Add PKR {(FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2)} more to qualify for free shipping!</p>
+                  )}
+                  {!isLahore && (
+                    <p className="text-xs text-muted-foreground mt-2">Same Day Delivery is available for Lahore only.</p>
                   )}
                   <div className="flex gap-3 mt-6">
                     <Button variant="outline" onClick={() => setStep(0)}>Back</Button>

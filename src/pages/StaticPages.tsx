@@ -40,11 +40,11 @@ export const ShippingPolicy = () => (
   <StaticPage title="Shipping Policy">
     <p>We offer multiple shipping options to meet your needs.</p>
     <h2 className="font-display text-xl font-semibold text-foreground mt-6">Standard Shipping</h2>
-    <p>5-7 business days. PKR 1,670 flat rate.</p>
-    <h2 className="font-display text-xl font-semibold text-foreground mt-6">Express Shipping</h2>
-    <p>2-3 business days. PKR 4,180.</p>
+    <p>3-5 business days. PKR 800 flat rate.</p>
+    <h2 className="font-display text-xl font-semibold text-foreground mt-6">Same Day Delivery</h2>
+    <p>Available in Lahore only. PKR 1,500.</p>
     <h2 className="font-display text-xl font-semibold text-foreground mt-6">Free Shipping</h2>
-    <p>Available on all orders over PKR 14,000. Delivered in 7-10 business days.</p>
+    <p>Available on all orders over PKR 14,000. Delivered in 3-5 business days.</p>
   </StaticPage>
 );
 
@@ -63,7 +63,7 @@ export const FAQ = () => (
     {[
       ['How do I track my order?', 'Once your order ships, you\'ll receive a tracking number via email.'],
       ['What payment methods do you accept?', 'We accept all major credit cards and Stripe payments.'],
-      ['Do you offer international shipping?', 'Currently, we ship within the United States. International shipping coming soon.'],
+      ['Do you offer international shipping?', 'Currently, we ship within Pakistan. International shipping coming soon.'],
       ['What is your return policy?', 'We offer a 30-day return policy for all unused items in original packaging.'],
       ['Are all products authentic?', 'Yes, all products are sourced from authorized distributors and come with manufacturer warranty.'],
     ].map(([q, a]) => (
