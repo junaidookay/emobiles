@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { useCategories, useBrands, useAllBlogPosts, useCoupons } from '@/hooks/useProducts';
-import { useHeroSettings, useFaviconSettings, useFreeShippingSettings, useUpdateSiteSetting, type HeroSettings } from '@/hooks/useSiteSettings';
+import { useHeroSettings, useFaviconSettings, useFreeShippingSettings, useBankTransferSettings, useUpdateSiteSetting, type HeroSettings, type BankTransferSettings } from '@/hooks/useSiteSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -434,6 +434,68 @@ export const AdminCoupons = () => {
 // ========== SETTINGS ==========
 const DEFAULT_FAVICON_SVG = '/favicon.svg';
 
+const BankTransferSettingsEditor = () => {
+  const { data: bankData, isLoading } = useBankTransferSettings();
+  const update = useUpdateSiteSetting('bank_transfer');
+  const [form, setForm] = useState<BankTransferSettings | null>(null);
+
+  useEffect(() => { if (bankData && !form) setForm(bankData); }, [bankData, form]);
+
+  if (isLoading || !form) return <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+
+  const handleSave = async () => {
+    try {
+      await update.mutateAsync(form);
+      toast.success('Bank transfer details updated');
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to save');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="border-0 shadow-card">
+        <CardContent className="p-6 space-y-5">
+          <div>
+            <h3 className="font-display font-semibold text-lg">Bank Transfer Details</h3>
+            <p className="text-sm text-muted-foreground mt-1">These details are shown to customers at checkout and on the order confirmation page when they select "Bank Transfer".</p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Bank Name</Label>
+              <Input className="mt-1" value={form.bank_name} onChange={e => setForm(p => p ? { ...p, bank_name: e.target.value } : p)} />
+            </div>
+            <div>
+              <Label>Account Title</Label>
+              <Input className="mt-1" value={form.account_title} onChange={e => setForm(p => p ? { ...p, account_title: e.target.value } : p)} />
+            </div>
+            <div>
+              <Label>Account Number</Label>
+              <Input className="mt-1" value={form.account_number} onChange={e => setForm(p => p ? { ...p, account_number: e.target.value } : p)} />
+            </div>
+            <div>
+              <Label>IBAN</Label>
+              <Input className="mt-1 font-mono" value={form.iban} onChange={e => setForm(p => p ? { ...p, iban: e.target.value } : p)} />
+            </div>
+            <div>
+              <Label>Branch Code</Label>
+              <Input className="mt-1" value={form.branch_code} onChange={e => setForm(p => p ? { ...p, branch_code: e.target.value } : p)} />
+            </div>
+          </div>
+          <div>
+            <Label>Instructions for Customer</Label>
+            <Textarea className="mt-1" rows={3} value={form.instructions} onChange={e => setForm(p => p ? { ...p, instructions: e.target.value } : p)} />
+          </div>
+          <Button onClick={handleSave} disabled={update.isPending}>
+            {update.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            Save Bank Details
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 export const AdminSettings = () => {
   const [activeTab, setActiveTab] = useState('general');
 
@@ -450,27 +512,7 @@ export const AdminSettings = () => {
 
       {activeTab === 'homepage' && <HeroSettingsEditor />}
 
-      {activeTab === 'payments' && (
-        <div className="space-y-6">
-          <Card className="border-0 shadow-card">
-            <CardContent className="p-6 space-y-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-display font-semibold text-lg">Stripe Payments</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Accept credit card payments via Stripe.</p>
-                </div>
-                <Badge variant="outline" className="text-muted-foreground">Not configured</Badge>
-              </div>
-              <div className="space-y-4">
-                <div><Label>Publishable Key</Label><Input className="mt-1 font-mono text-xs" placeholder="pk_live_..." /></div>
-                <div><Label>Secret Key</Label><Input className="mt-1 font-mono text-xs" type="password" placeholder="sk_live_..." /></div>
-                <div><Label>Webhook Secret</Label><Input className="mt-1 font-mono text-xs" type="password" placeholder="whsec_..." /></div>
-              </div>
-              <Button>Save Payment Settings</Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {activeTab === 'payments' && <BankTransferSettingsEditor />}
     </div>
   );
 };
