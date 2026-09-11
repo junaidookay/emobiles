@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Loader2, Upload, X, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Upload, X, Eye, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -99,6 +99,58 @@ const AdminProducts = () => {
       _deletedImages: [],
     })));
     setShowDialog(true);
+  };
+
+  const handleDuplicate = async (product: any) => {
+    // Create a unique slug by appending -copy, -copy-2, etc.
+    let baseSlug = product.slug;
+    let newSlug = `${baseSlug}-copy`;
+    let counter = 2;
+    // Check if slug already exists
+    const { data: existing } = await supabase.from('products').select('id').eq('slug', newSlug);
+    if (existing && existing.length > 0) {
+      newSlug = `${baseSlug}-copy-${counter}`;
+      while (true) {
+        const { data: check } = await supabase.from('products').select('id').eq('slug', newSlug);
+        if (!check || check.length === 0) break;
+        counter++;
+        newSlug = `${baseSlug}-copy-${counter}`;
+      }
+    }
+
+    const { data: newProduct, error } = await supabase.from('products').insert({
+      name: product.name,
+      slug: newSlug,
+      description: product.description,
+      short_description: product.short_description,
+      price: product.price,
+      discount_price: product.discount_price,
+      stock: product.stock,
+      sku: product.sku ? `${product.sku}-COPY` : null,
+      category_id: product.category_id,
+      brand_id: product.brand_id,
+      is_featured: false,
+      is_new: false,
+      is_best_seller: false,
+      specifications: product.specifications,
+    }).select().single();
+
+    if (error) { toast.error('Failed to duplicate product'); return; }
+
+    // Copy images
+    if (product.product_images?.length) {
+      const imageInserts = product.product_images.map((img: any, i: number) => ({
+        product_id: newProduct.id,
+        url: img.url,
+        sort_order: i,
+      }));
+      await supabase.from('product_images').insert(imageInserts);
+    }
+
+    toast.success('Product duplicated');
+    queryClient.invalidateQueries({ queryKey: ['all-products'] });
+    // Open the duplicate in edit mode
+    openEdit({ ...newProduct, product_images: product.product_images?.map((img: any, i: number) => ({ id: `new-${i}`, url: img.url })) || [] });
   };
 
   const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -271,6 +323,7 @@ const AdminProducts = () => {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(product)} title="Duplicate"><Copy className="h-3 w-3" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(product)}><Pencil className="h-3 w-3" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(product.id)}><Trash2 className="h-3 w-3" /></Button>
                         </div>
