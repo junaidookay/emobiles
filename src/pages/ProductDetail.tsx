@@ -328,7 +328,7 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="description" className="mt-14">
+        <Tabs defaultValue="specs" className="mt-14">
           <TabsList>
             <TabsTrigger value="description">Description</TabsTrigger>
             <TabsTrigger value="specs">Specifications</TabsTrigger>
