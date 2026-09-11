@@ -316,9 +316,9 @@ const ProductDetail = () => {
 
             <div className="space-y-3">
               {[
-                { icon: Truck, text: 'Free shipping on orders over PKR 14,000' },
-                { icon: Shield, text: '2-year warranty included' },
-                { icon: RotateCcw, text: '30-day return policy' },
+                // { icon: Truck, text: 'Free shipping on orders over PKR 14,000' },
+                // { icon: Shield, text: '2-year warranty included' },
+                // { icon: RotateCcw, text: '30-day return policy' },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Icon className="h-4 w-4 text-primary" />{text}
