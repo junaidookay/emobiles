@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAllProducts, useCategories, useBrands } from '@/hooks/useProducts';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -129,9 +129,9 @@ const AdminProducts = () => {
       sku: product.sku ? `${product.sku}-COPY` : null,
       category_id: product.category_id,
       brand_id: product.brand_id,
-      is_featured: false,
-      is_new: false,
-      is_best_seller: false,
+      is_featured: product.is_featured,
+      is_new: product.is_new,
+      is_best_seller: product.is_best_seller,
       specifications: product.specifications,
     }).select().single();
 
@@ -340,7 +340,10 @@ const AdminProducts = () => {
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editId ? 'Edit Product' : 'Add Product'}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editId ? 'Edit Product' : 'Add Product'}</DialogTitle>
+            <DialogDescription className="sr-only">{editId ? 'Edit product details, images, variants, and specifications.' : 'Add a new product with details, images, variants, and specifications.'}</DialogDescription>
+          </DialogHeader>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2"><Label>Name</Label><Input className="mt-1" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value, slug: generateSlug(e.target.value) }))} /></div>
             <div className="sm:col-span-2"><Label>Slug</Label><Input className="mt-1" value={form.slug} onChange={e => setForm(p => ({ ...p, slug: e.target.value }))} /></div>
