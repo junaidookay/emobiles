@@ -18,6 +18,7 @@ import ProductPreview from '@/components/admin/ProductPreview';
 const emptyProduct = {
   name: '', slug: '', description: '', short_description: '', price: '', discount_price: '',
   stock: '0', sku: '', category_id: '', brand_id: '', is_featured: false, is_new: false, is_best_seller: false,
+  specifications: [] as { key: string; value: string }[],
 };
 
 interface VariantDraft {
@@ -72,6 +73,7 @@ const AdminProducts = () => {
       price: String(p.price), discount_price: p.discount_price ? String(p.discount_price) : '',
       stock: String(p.stock), sku: p.sku || '', category_id: p.category_id || '', brand_id: p.brand_id || '',
       is_featured: p.is_featured, is_new: p.is_new, is_best_seller: p.is_best_seller,
+      specifications: p.specifications ? Object.entries(p.specifications).map(([key, value]) => ({ key, value: String(value) })) : [],
     });
     setExistingImages(p.product_images?.map((i: any) => ({ id: i.id, url: i.url })) || []);
     setImageFiles([]);
@@ -125,6 +127,10 @@ const AdminProducts = () => {
         is_featured: form.is_featured,
         is_new: form.is_new,
         is_best_seller: form.is_best_seller,
+        specifications: form.specifications.reduce((acc, s) => {
+          if (s.key.trim()) acc[s.key.trim()] = s.value;
+          return acc;
+        }, {} as Record<string, string>),
       };
 
       let productId = editId;
@@ -318,6 +324,49 @@ const AdminProducts = () => {
               <div className="flex items-center gap-2"><Switch checked={form.is_featured} onCheckedChange={v => setForm(p => ({ ...p, is_featured: v }))} /><Label>Featured</Label></div>
               <div className="flex items-center gap-2"><Switch checked={form.is_new} onCheckedChange={v => setForm(p => ({ ...p, is_new: v }))} /><Label>New</Label></div>
               <div className="flex items-center gap-2"><Switch checked={form.is_best_seller} onCheckedChange={v => setForm(p => ({ ...p, is_best_seller: v }))} /><Label>Best Seller</Label></div>
+            </div>
+          </div>
+
+          {/* Specifications */}
+          <div className="mt-4 border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <Label className="text-base">Specifications</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Key-value pairs shown on the product detail page (e.g. Display, Chip, Battery).</p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={() => setForm(p => ({ ...p, specifications: [...p.specifications, { key: '', value: '' }] }))}>
+                <Plus className="h-4 w-4 mr-1" /> Add Spec
+              </Button>
+            </div>
+            {form.specifications.length === 0 && (
+              <p className="text-sm text-muted-foreground">No specifications added yet.</p>
+            )}
+            <div className="space-y-2">
+              {form.specifications.map((spec, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    placeholder="Key (e.g. Display)"
+                    value={spec.key}
+                    onChange={e => setForm(p => ({
+                      ...p,
+                      specifications: p.specifications.map((s, j) => j === i ? { ...s, key: e.target.value } : s)
+                    }))}
+                    className="flex-1"
+                  />
+                  <Input
+                    placeholder="Value (e.g. 6.7 inch OLED)"
+                    value={spec.value}
+                    onChange={e => setForm(p => ({
+                      ...p,
+                      specifications: p.specifications.map((s, j) => j === i ? { ...s, value: e.target.value } : s)
+                    }))}
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setForm(p => ({ ...p, specifications: p.specifications.filter((_, j) => j !== i) }))}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
           </div>
 
